@@ -85,7 +85,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex gap-3 items-center opacity-70 grayscale hover:grayscale-0 transition-all">
+          <div className="flex gap-3 items-center  transition-all">
              <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-4 bg-white p-1 rounded" alt="Visa" />
              <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-6" alt="Mastercard" />
              <div className="bg-white px-2 py-0.5 rounded text-[10px] font-bold text-blue-600">Paytm</div>

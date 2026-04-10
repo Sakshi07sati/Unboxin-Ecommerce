@@ -38,10 +38,13 @@ import {
 //     return () => document.removeEventListener("mousedown", handleClickOutside);
 //   }, []);
 import React from "react";
+import {useState} from "react";
+import AuthModal from "../User/AuthModal";
 
 
 
 const Navbar = () => {
+  const [open,setOpen] = useState(false);
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-50">
       <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
@@ -76,10 +79,12 @@ const Navbar = () => {
 
         {/* Icons */}
         <div className="flex items-center gap-6 text-gray-700">
-          <User size={22} className="cursor-pointer hover:text-primary" />
+         
+          <button onClick={() => setOpen(true)}> <User size={22}/> </button>
+      <AuthModal isOpen={open} onClose={() => setOpen(false)}  className="cursor-pointer hover:text-primary" />
           <Heart size={22} className="cursor-pointer hover:text-primary" />
           <div className="relative cursor-pointer hover:text-primary">
-            <ShoppingBag size={22} />
+             <ShoppingBag size={22} />
             <span className="absolute -top-1 -right-2 bg-primary text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
               0
             </span>
