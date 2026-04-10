@@ -6,6 +6,8 @@ import { Route, Routes } from "react-router-dom";
 // import AdminLogin from "@/pages/AdminLogin/AdminLogin";
 // import ProtectedRoute from "@/pages/ProtectedRoutes/AdminProtectedRoute";
 import Home from "../pages/home/Home";
+import ProductCategory from "../components/Sections/ProductCategory";
+import ProductCard from "../components/Products/ProductCard";
 // import EditProduct from "@/pages/AdminDashboard/Products/EditProduct";
 // import Shop from "@/pages/Shop/Shop";
 // import ProductDetails from "@/pages/Shop/Components/ProductDetail";
@@ -50,6 +52,8 @@ const AllRoutes = () => {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
+      <Route path="/product-category" element={<ProductCategory />} />
+      <Route path="/product-card" element={<ProductCard />} />
       {/* <Route path="/admin/login" element={<AdminLogin />} /> */}
       {/* <Route path="/sub-admin/login" element={<SubAdminLogin />} /> */}
       {/* <Route path="/shop" element={<Shop />} /> */}
