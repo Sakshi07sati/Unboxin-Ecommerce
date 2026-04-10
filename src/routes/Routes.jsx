@@ -107,7 +107,7 @@ const AllRoutes = () => {
       >
         <Route index element={<Dashboard />} />
         <Route path="/admin/users" element={<Users />} />
-        <Route path="products" element={<Products />} />
+        <Route path="products" element={<Products />} /> */}
         <Route 
           path="products/add" 
           element={
@@ -115,7 +115,7 @@ const AllRoutes = () => {
               <AddProduct />
             </PermissionProtectedRoute>
           } 
-        /> */}
+        />
         {/* <Route path="/admin/products/edit/:id" element={<EditProduct />} /> */}
 
         {/* <Route path="/admin/category" element={<Category />} /> */}
