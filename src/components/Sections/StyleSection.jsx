@@ -30,6 +30,7 @@ export default function StyleSection() {
             <div className="relative overflow-hidden rounded-lg">
               <img 
                 src={p.thumbnail}
+                crossOrigin="anonymous"
                 className="h-48 w-full object-contain group-hover:scale-105 transition"
               />
 

@@ -2,7 +2,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../features/auth/authSlice";
 import cartReducer from "../features/cart/cartSlice";
 import wishlistReducer from "../features/wishlist/wishlistSlice";
-
+import categoryReducer from "../features/category/categorySlice";
+import bannerReducer from '../features/banner/bannerSlice';
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
@@ -26,6 +27,8 @@ export const store = configureStore({
     auth: persistedAuthReducer,
     cart: cartReducer,
     wishlist: wishlistReducer,
+    category: categoryReducer,
+     banner : bannerReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

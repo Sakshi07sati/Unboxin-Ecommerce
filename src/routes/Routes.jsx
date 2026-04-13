@@ -7,6 +7,8 @@ import AdminProtectedRoute from "../pages/protectedRoutes/AdminProtectedRoutes";
 import AdminLayout from "../pages/adminDashboard/AdminLayout";
 import Dashboard from "../pages/adminDashboard/components/Dashboard";
 import AddCategory from "../pages/adminDashboard/category/AddCategory";
+import Category from "../pages/adminDashboard/category/Category";
+import BannerManagement from "../pages/adminDashboard/banners/Banner";
 
 const AllRoutes = () => {
   return (
@@ -32,7 +34,8 @@ const AllRoutes = () => {
         <Route path="/admin/categories/add" element={<AddCategory />} />
         
         {/* Placeholder for other routes (they were commented out in previous code) */}
-        {/* <Route path="/admin/category" element={<Category />} /> */}
+        <Route path="/admin/category" element={<Category />} />
+        <Route path="/admin/banner" element={<BannerManagement />} />
       </Route>
     </Routes>
   );

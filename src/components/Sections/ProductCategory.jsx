@@ -284,6 +284,7 @@ export default function ProductCategory() {
               <img
                 src={cat.img}
                 alt={cat.name}
+                crossOrigin="anonymous"
                 className="w-full h-full object-cover"
               />
             </div>

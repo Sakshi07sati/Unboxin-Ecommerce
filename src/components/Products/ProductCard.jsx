@@ -44,6 +44,7 @@ export default function ProductCard({ product }) {
         <img
           src={product.thumbnail}
           alt={product.title}
+          crossOrigin="anonymous"
           className="h-full object-contain hover:scale-105 transition"
         />
       </div>

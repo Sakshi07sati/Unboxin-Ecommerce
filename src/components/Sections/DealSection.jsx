@@ -30,7 +30,7 @@ export default function DealSection() {
               {Math.round(p.discountPercentage)}% OFF
             </span>
 
-            <img src={p.thumbnail} className="h-40 mx-auto object-contain" />
+            <img src={p.thumbnail} crossOrigin="anonymous" className="h-40 mx-auto object-contain" />
 
             <h3 className="text-sm mt-2 line-clamp-2">{p.title}</h3>
 
