@@ -4,7 +4,7 @@ import "./index.css";
 import { Toaster } from "react-hot-toast";
 import ScrollToTop from './components/common/ScrollToTop';
 import AllRoutes from '../src/routes/Routes';
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
 
 // import { CategoryProvider } from "./context/CategoryContext";
 // import 'swiper/css';
@@ -15,16 +15,6 @@ import { useEffect, useState } from "react";
 
 const App = () => {
 
-   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate app loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 16000);
-
-    return () => clearTimeout(timer);
-  }, []);
   return (
     <div>
       {/* <CategoryProvider> */}

@@ -20,6 +20,7 @@ export default function Home() {
         const data = await fetchProductsAPI();
         setProducts(data);
       } catch (err) {
+        console.error("Error fetching products:", err);
         setError("Failed to load products");
       } finally {
         setLoading(false);
