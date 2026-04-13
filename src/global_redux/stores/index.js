@@ -1,4 +1,3 @@
-
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../features/auth/authSlice";
 import cartReducer from "../features/cart/cartSlice";
@@ -7,12 +6,14 @@ import wishlistReducer from "../features/wishlist/wishlistSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
-const fixedStorage = storage.default || storage; // ✅ IMPORTANT FIX
+// ✅ Vite compatibility for redux-persist storage
+const fixedStorage = storage.default || storage; 
 
+// 🔐 Persist config
 const authPersistConfig = {
   key: "auth",
   storage: fixedStorage,
-  whitelist: ["user", "token", "permissions"],
+  whitelist: ["user", "token", "permissions", "admin"],
 };
 
 const persistedAuthReducer = persistReducer(
