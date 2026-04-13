@@ -8,9 +8,13 @@ import { Route, Routes } from "react-router-dom";
 import Home from "../pages/home/Home";
 import ProductCategory from "../components/Sections/ProductCategory";
 import ProductCard from "../components/Products/ProductCard";
+
+import AdminProtectedRoute from "./AdminProtectedRoute";
+import UserProtectedRoute from "./UserProtectedRoute";
+import PermissionProtectedRoute from "./PermissionProtectedRoute";
 // import EditProduct from "@/pages/AdminDashboard/Products/EditProduct";
 // import Shop from "@/pages/Shop/Shop";
-// import ProductDetails from "@/pages/Shop/Components/ProductDetail";
+
 // import Signup from "@/pages/Auth/Signup/Signup";
 // import CartPage from "@/pages/CartPage/Cart";
 // import Category from "@/pages/AdminDashboard/Category/Category";
@@ -61,7 +65,7 @@ const AllRoutes = () => {
       {/* <Route path="/shop/:section" element={<Shop />} /> */}
       {/* <Route path="/about" element={<About />} /> */}
       {/* <Route path="/contact" element={<Contact />} /> */}
-      {/* <Route path="/product/:id" element={<ProductDetails />} /> */}
+      <Route path="/product/:id" element={<ProductDetails />} />
       {/* <Route path="/cart" element={<CartPage />} /> */}
       {/* <Route path="/checkout" element={<CheckoutPage />} /> */}
       {/* <Route path="/order-success" element={<OrderSuccess />} /> */}
@@ -97,75 +101,14 @@ const AllRoutes = () => {
 
 
       {/* Protected Admin Routes */}
-      {/* <Route
+      <Route
         path="/admin"
         element={
           <AdminProtectedRoute>
-            <AdminLayout />
+            <AdminDashboard />
           </AdminProtectedRoute>
         }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="/admin/users" element={<Users />} />
-        <Route path="products" element={<Products />} /> */}
-        <Route 
-          path="products/add" 
-          element={
-            <PermissionProtectedRoute module="products" action="add">
-              <AddProduct />
-            </PermissionProtectedRoute>
-          } 
-        />
-        {/* <Route path="/admin/products/edit/:id" element={<EditProduct />} /> */}
-
-        {/* <Route path="/admin/category" element={<Category />} /> */}
-        {/* <Route 
-          path="/admin/categories/add" 
-          element={
-            <PermissionProtectedRoute module="categories" action="add">
-              <AddCategory />
-            </PermissionProtectedRoute>
-          } 
-        /> */}
-
-        {/* <Route path="/admin/banner" element={<BannerManagement />} /> */}
-
-        {/* <Route path="/admin/section" element={<SectionManagement />} /> */}
-
-        {/* <Route path="/admin/section/products" element={<SectionProductManagement />} /> */}
-        {/* <Route 
-          path="/admin/section/products/add" 
-          element={
-            <PermissionProtectedRoute module="sectionProducts" action="add">
-              <AddSectionProduct />
-            </PermissionProtectedRoute>
-          } 
-        />
-
-        <Route path="/admin/promo-codes" element={<PromoCode />} />
-        <Route 
-          path="/admin/promo-codes/add" 
-          element={
-            <PermissionProtectedRoute module="promoCodes" action="add">
-              <AddPromoCode />
-            </PermissionProtectedRoute>
-          } 
-        />
-        
-        <Route path="orders" element={<AdminOrders />} />
-        <Route path="orders/normal" element={<NormalOrders />} />
-        <Route path="orders/customizable" element={<CustomizableOrders />} />
-        
-        <Route path="/admin/contacts" element={<AdminContacts />} />
-
-        <Route path="/admin/ai-management" element={<AIManagement />} />
-
-        <Route path="/admin/sub-admins" element={<SubAdmins />} />
-        <Route path="/admin/sub-admins/add" element={<AddSubAdmin />} />
-        <Route path="/admin/sub-admins/edit/:id" element={<AddSubAdmin />} /> */}
-
-        {/* <Route path="products/edit/:id" element={<EditProduct />} /> */}
-      {/* </Route> */}
+      />
     </Routes>
   );
 };

@@ -6,7 +6,7 @@ const PermissionProtectedRoute = ({ children, module, action }) => {
 
   if (!token) return <Navigate to="/" />;
 
-  const hasPermission = permissions?.[module]?.includes(action);
+  const hasPermission = permissions?.[module]?.includes(action);//module- products, action- read, write, delete
 
   return hasPermission ? children : <Navigate to="/" />;
 };

@@ -5,7 +5,8 @@ const initialState = {
   token: null,
   loading: false,
   error: null,
-  permissions: [],
+  role: null,
+  permissions: {}, // Store permissions as an object for module/action checks
 };
 
 const authSlice = createSlice({
@@ -24,7 +25,9 @@ const authSlice = createSlice({
       state.loading = false;
       state.user = user;
       state.token = token;
-      state.permissions = user?.permissions || [];
+      state.role = user?.role || null;
+      // Ensure permissions is always an object
+      state.permissions = user?.permissions || {};
     },
 
     authFail: (state, action) => {
@@ -35,7 +38,8 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.token = null;
-      state.permissions = [];
+      state.role = null;
+      state.permissions = {};
       state.error = null;
       state.loading = false;
     },

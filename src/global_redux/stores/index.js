@@ -4,18 +4,15 @@ import authReducer from "../features/auth/authSlice";
 import cartReducer from "../features/cart/cartSlice";
 import wishlistReducer from "../features/wishlist/wishlistSlice";
 
-import {
-  persistStore,
-  persistReducer,
-} from "redux-persist";
+import { persistStore, persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage";
 
-import storage from "redux-persist/lib/storage"; // localStorage
+const fixedStorage = storage.default || storage; // ✅ IMPORTANT FIX
 
-// 🔐 Persist config
 const authPersistConfig = {
   key: "auth",
-  storage,
-  whitelist: ["user", "token", "permissions"], // only store these
+  storage: fixedStorage,
+  whitelist: ["user", "token", "permissions"],
 };
 
 const persistedAuthReducer = persistReducer(
@@ -26,7 +23,7 @@ const persistedAuthReducer = persistReducer(
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
-     cart: cartReducer,
+    cart: cartReducer,
     wishlist: wishlistReducer,
   },
   middleware: (getDefaultMiddleware) =>

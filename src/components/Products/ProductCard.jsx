@@ -1,17 +1,44 @@
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { addToCart } from "../../global_redux/features/cart/cartSlice";
+import { toggleWishlist } from "../../global_redux/features/wishlist/wishlistSlice";
+import { Heart } from "lucide-react";
+
 export default function ProductCard({ product }) {
-    const dispatch = useDispatch();
-    if (!product) {
-        return (null);}
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const wishlist = useSelector((state) => state.wishlist.items);
+  const isWishlisted = wishlist.some((item) => item.id === product.id);
+
+  if (!product) {
+    return null;
+  }
   const discountedPrice = Math.round(
     product.price - (product.price * product.discountPercentage) / 100
   );
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg transition cursor-pointer">
+  const handleWishlistClick = (e) => {
+    e.stopPropagation();
+    dispatch(toggleWishlist(product));
+  };
 
+  return (
+    <div
+      className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg transition cursor-pointer relative"
+      onClick={() => navigate(`/product/${product.id}`)}
+      tabIndex={0}
+      role="button"
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(`/product/${product.id}`); }}
+    >
+      {/* Wishlist Icon */}
+      <button
+        className="absolute top-3 right-3 z-10 p-1 rounded-full bg-white shadow hover:bg-pink-50"
+        onClick={handleWishlistClick}
+        aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+      >
+        <Heart size={20} color={isWishlisted ? "#e80071" : "#aaa"} fill={isWishlisted ? "#e80071" : "none"} />
+      </button>
       {/* Image */}
       <div className="h-48 flex items-center justify-center overflow-hidden">
         <img
