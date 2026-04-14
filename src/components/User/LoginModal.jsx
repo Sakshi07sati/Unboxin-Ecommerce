@@ -48,7 +48,7 @@ const LoginForm = ({ setStep, setLoginOtpData }) => {
         <p className="text-sm text-gray-500 mt-2">To discover your beauty favorites</p>
       </div>
 
-      <form onSubmit={handleLogin} className="space-y-6">
+      <form onSubmit={handleLogin} className="space-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              y-6">
         <div className="relative">
           <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-1">
             Email Address / Phone

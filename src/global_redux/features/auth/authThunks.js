@@ -31,7 +31,7 @@ export const fetchAllUsers = createAsyncThunk(
 //         email,
 //         password,
 //         phone,
-//         dateOfBirth,
+//         
 //       });
 //       return res.data; // e.g. { message: "OTP sent to email. Please verify to complete registration." }
 //     } catch (error) {

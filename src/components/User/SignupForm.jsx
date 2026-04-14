@@ -34,7 +34,7 @@
 
 // export default SignupForm;
 
-// import { registerUser } from "../../global_redux/features/auth/authApi";
+import { registerUser } from "../../global_redux/features/auth/authApi";
 import toast from "react-hot-toast";
 
 const SignupForm = ({ setStep }) => {
@@ -48,26 +48,16 @@ const SignupForm = ({ setStep }) => {
       password: e.target.password.value,
     };
 
-    
-      // await registerUser(data);
-      // toast.success("OTP sent to your phone/email");
-      // setStep("otp");
-
       try {
-  // MOCK SIGNUP (skip API for now)
+    const res = await registerUser(data);
 
-  // Step 1: generate OTP
-  const otp = Math.floor(100000 + Math.random() * 900000);
+    // 🔥 IMPORTANT: backend should send this flag
+    if (res.data.otpRequired) {
+      localStorage.setItem("email", data.email);
+      toast.success("OTP sent to your email/phone");
+      setStep("otp");
+    }
 
-  localStorage.setItem("otp", otp);
-  localStorage.setItem("email", data.email);
-  localStorage.setItem("otpExpiry", Date.now() + 60000);
-
-  console.log(" Signup OTP:", otp);
-
-  // Step 2: move to OTP screen
-  toast.success("OTP sent to your phone/email");
-  setStep("otp");
       
     } catch (err) {
       console.log(err.response?.data || err.message);
@@ -142,6 +132,18 @@ const SignupForm = ({ setStep }) => {
         <p className="text-[10px] text-center text-gray-400 mt-4 leading-relaxed">
           By continuing, you agree to Nykaa's <span className="underline italic cursor-pointer">Terms & Conditions</span> and <span className="underline italic cursor-pointer">Privacy Policy.</span>
         </p>
+
+         <div className="pt-6 text-center border-t border-gray-50">
+          <p className="text-sm text-gray-600">
+            Existing User?{' '}
+            <span 
+              onClick={() => setStep("login")} 
+              className="text-[#e80071] font-bold cursor-pointer hover:underline ml-1"
+            >
+              LOGIN
+            </span>
+          </p>
+        </div>
       </form>
     </div>
   );
