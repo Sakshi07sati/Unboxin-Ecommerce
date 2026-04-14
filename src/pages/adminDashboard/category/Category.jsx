@@ -16,7 +16,7 @@ const Category = () => {
   
 
 
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("adminToken") || localStorage.getItem("token");
 
   const [editId, setEditId] = useState(null);
   const [editValue, setEditValue] = useState("");

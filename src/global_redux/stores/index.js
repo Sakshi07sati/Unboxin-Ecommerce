@@ -4,6 +4,7 @@ import cartReducer from "../features/cart/cartSlice";
 import wishlistReducer from "../features/wishlist/wishlistSlice";
 import categoryReducer from "../features/category/categorySlice";
 import bannerReducer from '../features/banner/bannerSlice';
+import productReducer from '../features/product/productSlice'
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
@@ -26,6 +27,7 @@ export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
     cart: cartReducer,
+    products: productReducer,
     wishlist: wishlistReducer,
     category: categoryReducer,
      banner : bannerReducer,

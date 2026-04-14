@@ -9,6 +9,9 @@ import Dashboard from "../pages/adminDashboard/components/Dashboard";
 import AddCategory from "../pages/adminDashboard/category/AddCategory";
 import Category from "../pages/adminDashboard/category/Category";
 import BannerManagement from "../pages/adminDashboard/banners/Banner";
+import AddProduct from "../pages/adminDashboard/product/AddProduct";
+import EditProduct from "../pages/adminDashboard/product/EditProduct";
+import Products from "../pages/adminDashboard/product/Product";
 
 const AllRoutes = () => {
   return (
@@ -29,13 +32,19 @@ const AllRoutes = () => {
         }
       >
         <Route index element={<Dashboard />} />
-        
+        <Route path="products" element={<Products />} />
+        <Route 
+          path="products/add" 
+          element={<AddProduct />} 
+        />
+        <Route path="products/edit/:id" element={<EditProduct />} />
         {/* Category Routes */}
-        <Route path="/admin/categories/add" element={<AddCategory />} />
+        <Route path="categories/add" element={<AddCategory />} />
         
         {/* Placeholder for other routes (they were commented out in previous code) */}
-        <Route path="/admin/category" element={<Category />} />
-        <Route path="/admin/banner" element={<BannerManagement />} />
+        <Route path="category" element={<Category />} />
+        <Route path="banner" element={<BannerManagement />} />
+
       </Route>
     </Routes>
   );

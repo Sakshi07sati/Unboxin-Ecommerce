@@ -16,7 +16,7 @@ const AdminProtectedRoute = ({ children }) => {
         return clean;
       }
       return null;
-    } catch (e) {
+    } catch {
       return null;
     }
   };
