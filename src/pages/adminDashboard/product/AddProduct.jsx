@@ -10,6 +10,7 @@ import {
   selectCategoryError,
   selectCategoryLoading,
 } from "../../../global_redux/features/category/categorySlice";
+import { fetchSubCategories } from "../../../global_redux/features/subCategory/subCategoryThunks";
 
 const AddProduct = () => {
   const dispatch = useDispatch();
@@ -18,11 +19,13 @@ const AddProduct = () => {
   const loadingCategories = useSelector(selectCategoryLoading);
   const categoryError = useSelector(selectCategoryError);
   const { status, error } = useSelector((state) => state.products);
+  const { subCategories, loading: subCategoryLoading } = useSelector((state) => state.subCategory);
 
   const [formData, setFormData] = useState({
     name: "",
     price: "",
     category: "",
+    subCategory: "",
     originalPrice: "",
     productDetails: "",
     productDescription: "",
@@ -32,6 +35,7 @@ const AddProduct = () => {
     if (!categories || categories.length === 0) {
       dispatch(fetchCategories());
     }
+    dispatch(fetchSubCategories());
   }, [dispatch, categories]);
 
   // Fixed sizes
@@ -150,6 +154,11 @@ const AddProduct = () => {
       newErrors.category = "Category is required";
     }
 
+    // Validate subCategory
+    if (!formData.subCategory || formData.subCategory.trim() === "") {
+      newErrors.subCategory = "SubCategory is required";
+    }
+
     // Validate price
     if (!formData.price || formData.price === "") {
       newErrors.price = "Price is required";
@@ -215,11 +224,13 @@ const AddProduct = () => {
     submitData.append("name", formData.name.trim());
     submitData.append("price", formData.price);
     submitData.append("category", formData.category);
+    submitData.append("subCategory", formData.subCategory);
     submitData.append("originalPrice", formData.originalPrice || "");
     submitData.append("productDetails", formData.productDetails || "");
     submitData.append("productDescription", formData.productDescription || "");
     submitData.append("quantity", calculateTotalQuantity().toString());
-    submitData.append("sizes", JSON.stringify(sizesArray));
+    const hasStock = sizesArray.some(s => s.stock > 0);
+    submitData.append("sizes", hasStock ? JSON.stringify(sizesArray) : "null");
 
     images.forEach((image) => submitData.append("img", image));
 
@@ -270,9 +281,8 @@ const AddProduct = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.name ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="Enter product name"
                 required
               />
@@ -291,9 +301,8 @@ const AddProduct = () => {
                 value={formData.category}
                 onChange={handleChange}
                 className={`w-full p-3 rounded border bg-white text-gray-700 shadow-sm
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.category ? "border-red-500" : "border-gray-300"
-                }`}
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.category ? "border-red-500" : "border-gray-300"
+                  }`}
                 required
               >
                 <option value="">-- Select a category --</option>
@@ -311,6 +320,44 @@ const AddProduct = () => {
               </select>
               {errors.category && (
                 <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+              )}
+            </div>
+
+            {/* SubCategory */}
+            <div>
+              <label className="block font-semibold mb-2 text-gray-800">
+                SubCategory <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="subCategory"
+                value={formData.subCategory}
+                onChange={handleChange}
+                className={`w-full p-3 rounded border bg-white text-gray-700 shadow-sm
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.subCategory ? "border-red-500" : "border-gray-300"
+                  }`}
+                required
+                disabled={!formData.category}
+              >
+                <option value="">-- Select a subcategory --</option>
+                {subCategoryLoading && (
+                  <option disabled>Loading subcategories...</option>
+                )}
+                {subCategories
+                  .filter((sub) => {
+                    const catId = typeof sub.category === "object" ? sub.category?._id : sub.category;
+                    return catId === formData.category;
+                  })
+                  .map((sub) => (
+                    <option key={sub._id || sub.id} value={sub._id || sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+              </select>
+              {errors.subCategory && (
+                <p className="text-red-500 text-sm mt-1">{errors.subCategory}</p>
+              )}
+              {!formData.category && (
+                <p className="text-xs text-blue-600 mt-1">Please select a category first</p>
               )}
             </div>
           </div>
@@ -360,9 +407,8 @@ const AddProduct = () => {
                     e.preventDefault();
                   }
                 }}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.price ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.price ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="0.00"
                 // step="0.01"
                 min="0"
@@ -392,9 +438,8 @@ const AddProduct = () => {
                     e.preventDefault();
                   }
                 }}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.originalPrice ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.originalPrice ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="0"
                 min="0"
               />

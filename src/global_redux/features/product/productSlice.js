@@ -81,7 +81,9 @@ const productSlice = createSlice({
       })
       .addCase(addProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products.push(action.payload);
+        if (action.payload && action.payload._id) {
+          state.products.push(action.payload);
+        }
       })
       .addCase(addProduct.rejected, (state, action) => {
         state.status = "failed";
@@ -95,6 +97,8 @@ const productSlice = createSlice({
       })
       .addCase(updateProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
+        if (!action.payload || !action.payload._id) return;
+        
         const index = state.products.findIndex(
           (product) => product._id === action.payload._id
         );

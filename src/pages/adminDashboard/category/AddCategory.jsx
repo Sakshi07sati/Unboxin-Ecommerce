@@ -8,12 +8,11 @@ import {
   clearCategoryStatus,
 } from "../../../global_redux/features/category/categorySlice";
 import toast from "react-hot-toast";
-import { CheckCircle, AlertCircle, Loader } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 const AddCategory = () => {
   const dispatch = useDispatch();
   const [category, setCategory] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
   const loading = useSelector(selectCategoryLoading);
   const success = useSelector(selectCategorySuccess);
   const error = useSelector(selectCategoryError);
@@ -38,134 +37,63 @@ const AddCategory = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!category.trim()) {
-      toast.error("Category is required");
+      toast.error("Category name is required");
       return;
     }
-    dispatch(addCategory({ category }));
+    dispatch(addCategory({ category: category.trim() }));
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
-        
-        * {
-          font-family: 'Geist', system-ui, -apple-system, sans-serif;
-        }
-
-        .input-field {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .input-field:focus {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 16px rgba(59, 130, 246, 0.12);
-        }
-
-        .submit-button {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .submit-button:not(:disabled):hover {
-          transform: translateY(-2px);
-          box-shadow: 0 12px 24px rgba(59, 130, 246, 0.25);
-        }
-
-        .submit-button:not(:disabled):active {
-          transform: translateY(0);
-        }
-
-        .status-message {
-          animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .input-label {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .input-field:focus ~ .input-label,
-        .input-field:not(:placeholder-shown) ~ .input-label {
-          transform: translateY(-24px);
-          font-size: 0.75rem;
-          color: rgb(59, 130, 246);
-        }
-      `}</style>
-
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Card Container */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
-          {/* Header Section */}
-          <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 p-8">
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.1),transparent)]"></div>
-            </div>
-            <div className="relative">
-              <h2 className="text-2xl font-bold text-white mb-1">Add Category</h2>
-              <p className="text-blue-100 text-sm">Create a new category for your items</p>
-            </div>
+        
+        {/* Card */}
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+          
+          {/* Header */}
+          <div className="bg-blue-600 px-6 py-8">
+            <h1 className="text-2xl font-bold text-white mb-1">Add Category</h1>
+            <p className="text-blue-100 text-sm">Create a new product category</p>
           </div>
 
-          {/* Content Section */}
-          <div className="p-8">
-            {/* Status Messages */}
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            
+            {/* Error Alert */}
             {error && (
-              <div className="status-message mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
+                <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
                 <p className="text-red-700 text-sm font-medium">{error}</p>
               </div>
             )}
 
-            {success && (
-              <div className="status-message mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <p className="text-green-700 text-sm font-medium">Category added successfully</p>
-              </div>
-            )}
-
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="relative">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-900 mb-2">
+                  Category Name
+                </label>
                 <input
+                  id="category"
                   type="text"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  placeholder=" "
-                  className="input-field w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:ring-offset-0 bg-white text-slate-900 placeholder-transparent peer"
+                  placeholder="e.g. Electronics, Clothing"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 transition"
+                  disabled={loading}
+                  autoFocus
                 />
-                <label className="input-label absolute left-4 top-3.5 text-slate-500 text-sm font-medium pointer-events-none">
-                  Category Name
-                </label>
-                {isFocused && (
-                  <div className="absolute right-4 top-3.5">
-                    <div className="text-blue-500 text-xs font-medium">Required</div>
-                  </div>
-                )}
               </div>
 
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="submit-button w-full py-3 px-4 rounded-lg font-semibold text-white text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:transform-none disabled:hover:shadow-none bg-gradient-to-r from-blue-600 to-blue-700"
+                className="w-full px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
-                    <Loader className="w-4 h-4 animate-spin" />
+                    <Loader2 size={18} className="animate-spin" />
                     <span>Adding...</span>
                   </>
                 ) : (
@@ -177,20 +105,13 @@ const AddCategory = () => {
                   </>
                 )}
               </button>
-
-              {/* Hint Text */}
-              <p className="text-xs text-slate-500 text-center mt-4">
-                Enter a unique name for your category
-              </p>
             </form>
-          </div>
-        </div>
 
-        {/* Decorative Element */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-slate-400">
-            Categories help organize your content
-          </p>
+            {/* Helper Text */}
+            <p className="text-xs text-gray-500 text-center">
+              Category names must be unique and descriptive
+            </p>
+          </div>
         </div>
       </div>
     </div>

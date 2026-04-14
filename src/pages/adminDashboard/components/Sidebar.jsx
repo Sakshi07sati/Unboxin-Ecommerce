@@ -75,6 +75,15 @@ const Sidebar = () => {
       ],
     },
     {
+      id: "SubCategories",
+      name: "SubCategories",
+      icon: Package,
+      subItems: [
+        { id: "Add SubCategory", name: "Add SubCategory", path: "/admin/subCategories/add" },
+        { id: "View SubCategory", name: "View SubCategory", path: "/admin/subCategories" },
+      ],
+    },
+    {
       id: "Sections",
       name: "Sections",
       icon: Package,
@@ -96,7 +105,7 @@ const Sidebar = () => {
         { id: "viewPromoCodes", name: "View Promo Codes", path: "/admin/promo-codes" },
       ]
      },
-    { id: "aiManagement", name: "AI Management", icon: Sparkles, path: "/admin/ai-management" },
+    // { id: "aiManagement", name: "AI Management", icon: Sparkles, path: "/admin/ai-management" },
   ];
 
   return (

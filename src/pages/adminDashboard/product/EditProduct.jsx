@@ -11,6 +11,7 @@ import {
   selectCategoryError,
   selectCategoryLoading,
 } from "../../../global_redux/features/category/categorySlice";
+import { fetchSubCategories } from "../../../global_redux/features/subCategory/subCategoryThunks";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -28,6 +29,7 @@ const EditProduct = () => {
   const categories = useSelector(selectCategories);
   const loadingCategories = useSelector(selectCategoryLoading);
   const categoryError = useSelector(selectCategoryError);
+  const { subCategories, loading: subCategoryLoading } = useSelector((state) => state.subCategory);
 
   // Try to find product in products array first, otherwise use currentProduct if it matches the id
   const productFromStore = products.find((p) => p._id === id);
@@ -40,6 +42,7 @@ const EditProduct = () => {
     price: "",
     originalPrice: "",
     category: "",
+    subCategory: "",
     discount: "",
     rating: "",
     productDetails: "",
@@ -78,7 +81,7 @@ const EditProduct = () => {
     }
   }, [id, products, currentProduct, dispatch]);
 
-  // 🟢 Update loading state based on productLoading
+  //  Update loading state based on productLoading
   useEffect(() => {
     if (productLoading) {
       setLoading(true);
@@ -87,12 +90,15 @@ const EditProduct = () => {
     }
   }, [productLoading, product]);
 
-  // 🟢 Fetch categories
+  // Fetch categories and subcategories only if not loaded
   useEffect(() => {
     if (!categories || categories.length === 0) {
       dispatch(fetchCategories());
     }
-  }, [dispatch, categories]);
+    if (!subCategories || subCategories.length === 0) {
+      dispatch(fetchSubCategories());
+    }
+  }, [dispatch, categories, subCategories]);
 
   const calculateDiscount = () => {
     const { price, originalPrice } = formData;
@@ -110,7 +116,8 @@ const EditProduct = () => {
         name: product.name || "",
         price: product.price || "",
         originalPrice: product.originalPrice || "",
-        category: (product.category?._id || (typeof product.category === 'string' ? product.category : "")) || "",
+        category: (product.category?._id || product.category?.id || (typeof product.category === 'string' ? product.category : "")) || "",
+        subCategory: (product.subCategory?._id || product.subCategory?.id || (typeof product.subCategory === 'string' ? product.subCategory : "")) || "",
         discount: product.discount || "",
         rating: product.rating || "",
         productDetails: product.productDetails || "",
@@ -254,6 +261,11 @@ const EditProduct = () => {
       newErrors.category = "Category is required";
     }
 
+    // Validate subCategory
+    if (!formData.subCategory || formData.subCategory.trim() === "") {
+      newErrors.subCategory = "SubCategory is required";
+    }
+
     // Validate price
     if (!formData.price || formData.price === "") {
       newErrors.price = "Price is required";
@@ -311,25 +323,42 @@ const EditProduct = () => {
       return;
     }
 
-    const validSizes = sizeVariants.filter((v) => v.size);
+    const sizesArray = sizeVariants.map((variant) => ({
+      size: variant.size,
+      stock: Number(variant.stock) || 0,
+    }));
+    
     const submitData = new FormData();
-
     submitData.append("name", formData.name.trim());
-    submitData.append("price", formData.price);
-    submitData.append("originalPrice", formData.originalPrice || "");
     submitData.append("category", formData.category);
-    submitData.append("discount", formData.discount || calculatedDiscount);
-    submitData.append("rating", formData.rating || "0");
+    submitData.append("subCategory", formData.subCategory || "");
     submitData.append("productDetails", formData.productDetails || "");
     submitData.append("productDescription", formData.productDescription || "");
-    submitData.append("quantity", calculateTotalQuantity());
-    submitData.append("sizes", JSON.stringify(validSizes));
+    submitData.append("price", formData.price);
+    submitData.append("originalPrice", formData.originalPrice || "");
+    submitData.append("rating", formData.rating || "0");
+    
+    submitData.append("quantity", calculateTotalQuantity().toString());
+    
+    // Send null if no stock is provided for any size, as seen in working Postman request
+    const hasStock = sizesArray.some(s => s.stock > 0);
+    submitData.append("sizes", hasStock ? JSON.stringify(sizesArray) : "null");
 
+    // Append new images if any
     images.forEach((img) => submitData.append("img", img));
-    if (existingImages.length > 0)
+
+    if (existingImages.length > 0) {
       submitData.append("existingImages", JSON.stringify(existingImages));
-    if (removedImages.length > 0)
+    }
+    if (removedImages.length > 0) {
       submitData.append("removedImages", JSON.stringify(removedImages));
+    }
+    
+    // FINAL DEBUG LOG
+    console.log("--- Submitting FormData (Final Check) ---");
+    for (let pair of submitData.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`);
+    }
 
     try {
       const res = await dispatch(
@@ -416,13 +445,46 @@ const EditProduct = () => {
                 {loadingCategories && <option>Loading...</option>}
                 {categoryError && <option>Error loading categories</option>}
                 {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.category}
+                  <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                    {cat.category || cat.name}
                   </option>
                 ))}
               </select>
               {errors.category && (
                 <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+              )}
+            </div>
+
+            {/* SubCategory Selection */}
+            <div>
+              <label className="block font-semibold mb-1 text-gray-700">
+                SubCategory *
+              </label>
+              <select
+                name="subCategory"
+                value={formData.subCategory}
+                onChange={handleChange}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.subCategory ? "border-red-500" : "border-gray-300"
+                }`}
+                required
+                disabled={!formData.category}
+              >
+                <option value="">Select subcategory</option>
+                {subCategoryLoading && <option>Loading...</option>}
+                {subCategories
+                  .filter((sub) => {
+                    const catId = typeof sub.category === "object" ? (sub.category?._id || sub.category?.id) : sub.category;
+                    return catId === formData.category;
+                  })
+                  .map((sub) => (
+                    <option key={sub._id || sub.id} value={sub._id || sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+              </select>
+              {errors.subCategory && (
+                <p className="text-red-500 text-sm mt-1">{errors.subCategory}</p>
               )}
             </div>
           </div>
@@ -595,7 +657,7 @@ const EditProduct = () => {
             className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-sm text-gray-500 mt-2">
-            Upload new images (max 10, 50MB each). Supported formats: JPEG, PNG,
+            Upload new images (max 4). Supported formats: JPEG, PNG,
             WebP.
           </p>
           {errors.images && (

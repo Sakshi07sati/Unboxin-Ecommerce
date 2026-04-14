@@ -13,6 +13,9 @@ import AddProduct from "../pages/adminDashboard/product/AddProduct";
 import EditProduct from "../pages/adminDashboard/product/EditProduct";
 import Products from "../pages/adminDashboard/product/Product";
 import ProductDetails from "../pages/ProductSection/ProductDetails";
+import SubCategory from "../pages/adminDashboard/subCategory/SubCategory";
+import SubCategoryAdd from "../pages/adminDashboard/subCategory/SubCategoryAdd";
+import SubCategoryEdit from "../pages/adminDashboard/subCategory/SubCategoryEdit";
 
 const AllRoutes = () => {
   return (
@@ -46,7 +49,10 @@ const AllRoutes = () => {
         {/* Placeholder for other routes (they were commented out in previous code) */}
         <Route path="category" element={<Category />} />
         <Route path="banner" element={<BannerManagement />} />
-
+        {/* SubCategory Routes */}
+        <Route path="subCategories" element={<SubCategory />} />
+        <Route path="subCategories/add" element={<SubCategoryAdd />} />
+        <Route path="subCategories/edit/:id" element={<SubCategoryEdit />} />
       </Route>
     </Routes>
   );

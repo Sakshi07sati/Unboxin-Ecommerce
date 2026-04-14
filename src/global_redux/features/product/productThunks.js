@@ -24,7 +24,7 @@ export const addProduct = createAsyncThunk(
   async (productData, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("adminToken");
-
+      console.log("Product Data:", productData);
       const isFormData = productData instanceof FormData;
 
       const config = {
@@ -37,7 +37,8 @@ export const addProduct = createAsyncThunk(
       };
 
       const res = await API.post("/products", productData, config);
-      return res.data.product;
+      console.log("Add response:", res.data);
+      return res.data.product || res.data.data || res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to add product");
     }
@@ -51,6 +52,15 @@ export const updateProduct = createAsyncThunk(
   async ({ id, productData }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("adminToken");
+      console.log("Updating product with ID:", id);
+      if (productData instanceof FormData) {
+        console.log("Updated data (FormData contents):");
+        for (let pair of productData.entries()) {
+          console.log(`${pair[0]}:`, pair[1]);
+        }
+      } else {
+        console.log("Updated data:", productData);
+      }
 
       const isFormData = productData instanceof FormData;
 
@@ -67,8 +77,8 @@ export const updateProduct = createAsyncThunk(
       }
 
       const res = await API.put(`/products/${id}`, productData, config);
-
-      return res.data.product || res.data;
+      console.log("Update response:", res.data);
+      return res.data.product || res.data.data || res.data;
     } catch (err) {
       console.error("Update error:", err);
 
@@ -136,13 +146,9 @@ export const fetchProductById = createAsyncThunk(
     try {
       console.log('API call for product ID:', id); // Check this
       const res = await API.get(`/products/${id}`);
-      console.log('API Response:', res.data); // Check this
+      console.log('API Response:', res.data);
       
-      // Make sure you're returning the product object
-      const productData = res.data.product || res.data.data;
-      console.log('Returning product data:', productData); // Add this
-      
-      return productData;
+      return res.data.product || res.data.data || res.data;
     } catch (err) {
       console.error('API Error:', err.response || err);
       return rejectWithValue(

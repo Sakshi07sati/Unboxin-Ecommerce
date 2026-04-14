@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchProducts, deleteProduct } from "../../../global_redux/features/product/productThunks";
+import { fetchSubCategories } from "../../../global_redux/features/subCategory/subCategoryThunks";
 import { Pencil, Trash2, Plus, Search, X, AlertTriangle, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { exportProducts } from "@/utils/exportUtils";
@@ -22,6 +23,7 @@ const Products = () => {
 
   useEffect(() => {
     dispatch(fetchProducts());
+    dispatch(fetchSubCategories());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount - dispatch is stable
 
@@ -36,11 +38,13 @@ const Products = () => {
         const filtered = products.filter(product => {
           const name = product.name?.toLowerCase() || "";
           const category = (product.category?.category || product.category?.name || (typeof product.category === 'string' ? product.category : ""))?.toLowerCase() || "";
+          const subCategory = (product.subCategory?.name || (typeof product.subCategory === 'string' ? product.subCategory : ""))?.toLowerCase() || "";
           const productId = product._id?.toLowerCase() || "";
           
           return (
             name.includes(searchLower) ||
             category.includes(searchLower) ||
+            subCategory.includes(searchLower) ||
             productId.includes(searchLower)
           );
         });
@@ -215,6 +219,9 @@ const Products = () => {
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Category
                 </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  SubCategory
+                </th>
                 {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Discount
                 </th>
@@ -227,26 +234,26 @@ const Products = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedProducts?.map((product) => (
+              {paginatedProducts?.filter(p => p && p._id).map((product) => (
                 <tr key={product._id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <img
-                        src={product.img[0]}
-                        alt={product.name}
+                        src={product.img?.[0] || "https://via.placeholder.com/150"}
+                        alt={product.name || "Product"}
                         className="h-14 w-14 rounded object-cover"
                       />
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                        <div className="text-sm text-gray-500">ID: {product._id}</div>
+                        <div className="text-sm font-medium text-gray-900">{product.name || "Unnamed Product"}</div>
+                        <div className="text-sm text-gray-500">ID: {product._id || "N/A"}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-center font-semibold text-gray-900">₹{product.originalPrice}</div>
+                    <div className="text-sm text-center font-semibold text-gray-900">₹{product.originalPrice || 0}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-center font-semibold line-through text-gray-400">₹{product.price}</div>
+                    <div className="text-sm text-center font-semibold line-through text-gray-400">₹{product.price || 0}</div>
                   </td>
                   {/* <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-center font-semibold text-gray-900">{product.quantity}</div>
@@ -255,9 +262,11 @@ const Products = () => {
                     <div className="text-sm text-center text-gray-900">
                       {product.category?.category || product.category?.name || (typeof product.category === 'string' ? product.category : "Uncategorized")}
                     </div>
-                    {
-                      // console.log(product)
-                    }
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-center text-gray-900">
+                      {product.subCategory?.name || (typeof product.subCategory === 'string' ? product.subCategory : "None")}
+                    </div>
                   </td>
                   {/* <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
