@@ -1,142 +1,111 @@
-// import { useDispatch } from "react-redux";
-// import { useNavigate } from "react-router-dom";
-// import { verifyOTP } from "../../global_redux/features/auth/authApi";
-// import { authSuccess } from "../../global_redux/features/auth/authSlice";
-// import toast from "react-hot-toast";
 
-// const OtpForm = ({ onClose, setStep, loginOtpData, isLoginOtp }) => {
-//   const dispatch = useDispatch();
-//   const navigate = useNavigate();
-
-//   const handleOTP = async (e) => {
-//     e.preventDefault();
-
-//     const otp = e.target.otp.value;
-//     const email = isLoginOtp && loginOtpData ? loginOtpData.email : localStorage.getItem("email");
-
-//     try {
-//       const res = await verifyOTP({ email, otp });
-//       dispatch(authSuccess(res.data));
-//       localStorage.setItem("token", res.data.token);
-//       toast.success(isLoginOtp ? "Login complete" : "Signup complete");
-
-//       // Role-based redirect
-//       const role = res.data.user?.role;
-//       if (role === "admin") {
-//         navigate("/admin");
-//       } else {
-//         navigate("/");
-//       }
-
-//       onClose && onClose();
-//       setStep && setStep("login");
-//     } catch {
-//       toast.error("Invalid OTP");
-//     }
-//   };
-
-//   return (
-//     <form onSubmit={handleOTP}>
-//       <input name="otp" placeholder="Enter OTP" />
-//       <button>Verify</button>
-//     </form>
-//   );
-// };
-
-// export default OtpForm;
-
-
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { verifyOTP } from "../../global_redux/features/auth/authApi";
-import { authSuccess } from "../../global_redux/features/auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { verifyOtp } from "../../global_redux/features/auth/authThunks";
 import toast from "react-hot-toast";
+import { useRef } from "react";
 
-const OtpForm = ({ onClose, setStep, loginOtpData, isLoginOtp }) => {
+const OtpForm = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const { otpData, loading } = useSelector((state) => state.auth);
 
-  const handleOTP = async (e) => {
+  const inputsRef = useRef([]);
+
+  //  Handle change
+  const handleChange = (e, index) => {
+    const value = e.target.value;
+
+    if (!/^[0-9]?$/.test(value)) return;
+
+    e.target.value = value;
+
+    // Move to next
+    if (value && index < 5) {
+      inputsRef.current[index + 1].focus();
+    }
+  };
+
+  //  Handle backspace
+  const handleKeyDown = (e, index) => {
+    if (e.key === "Backspace" && !e.target.value && index > 0) {
+      inputsRef.current[index - 1].focus();
+    }
+  };
+
+  //  Handle paste
+  const handlePaste = (e) => {
+    const paste = e.clipboardData.getData("text").slice(0, 6);
+    if (!/^\d{6}$/.test(paste)) return;
+
+    paste.split("").forEach((char, i) => {
+      if (inputsRef.current[i]) {
+        inputsRef.current[i].value = char;
+      }
+    });
+
+    inputsRef.current[5].focus();
+  };
+
+  //  Submit
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const otp = e.target.otp.value;
-    const email = isLoginOtp && loginOtpData ? loginOtpData.email : localStorage.getItem("email");
+    const otp = inputsRef.current.map((input) => input.value).join("");
 
-    try {
-      const res = await verifyOTP({ email, otp });
-      dispatch(authSuccess(res.data));
-      localStorage.setItem("token", res.data.token);
-      toast.success(isLoginOtp ? "Login complete" : "Signup complete");
+    console.log("VERIFY DATA:", {
+      email: otpData?.email,
+      emailOtp: otp,
+      phoneOtp: otp,
+    });
 
-      const role = res.data.user?.role;
-      navigate(role === "admin" ? "/admin" : "/");
+    const res = await dispatch(
+      verifyOtp({
+        email: otpData?.email,
+        emailOtp: otp,
+        phoneOtp: otp,
+      })
+    );
 
-      onClose && onClose();
-      setStep && setStep("login");
-    } catch {
-      toast.error("Invalid OTP. Please try again.");
+    if (!res.error) {
+      toast.success("Account verified! Please login.");
+    } else {
+      toast.error(res.payload || "Invalid OTP");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-sm border border-gray-100">
-      {/* Icon/Illustration Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-[#fff0f6] rounded-full mb-4">
-          <svg className="w-8 h-8 text-[#e80071]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        </div>
-        <h2 className="text-2xl font-semibold text-gray-800 tracking-tight">Verify OTP</h2>
-        <p className="text-sm text-gray-500 mt-2">
-          Sent to <span className="font-semibold text-gray-700">{loginOtpData?.email || "your device"}</span>
-        </p>
-      </div>
+    <div className="text-center">
+      <h2 className="text-2xl font-semibold mb-4">Verify OTP</h2>
+      <p className="text-sm text-gray-500 mb-6">
+        Enter the 6-digit code sent to your email
+      </p>
 
-      <form onSubmit={handleOTP} className="space-y-6">
-        {/* OTP Input */}
-        <div>
-          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4 text-center">
-            Enter 6-Digit Code
-          </label>
-          <input 
-            name="otp" 
-            type="text"
-            maxLength="6"
-            placeholder="0 0 0 0 0 0" 
-            required
-            className="w-full text-center text-2xl tracking-[0.5em] font-light border-b-2 border-gray-200 focus:outline-none focus:border-[#e80071] transition-all py-2 placeholder:text-gray-200"
-          />
+      <form onSubmit={handleSubmit}>
+        {/* OTP BOXES */}
+        <div
+          className="flex justify-center gap-3 mb-6"
+          onPaste={handlePaste}
+        >
+          {[...Array(6)].map((_, index) => (
+            <input
+              key={index}
+              type="text"
+              maxLength="1"
+              ref={(el) => (inputsRef.current[index] = el)}
+              onChange={(e) => handleChange(e, index)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              className="w-12 h-12 text-center text-xl border border-gray-300 rounded-md focus:outline-none focus:border-pink-600"
+            />
+          ))}
         </div>
 
-        {/* Verify Button */}
-        <button 
+        {/* BUTTON */}
+        <button
           type="submit"
-          className="w-full bg-[#e80071] hover:bg-[#c60061] text-white font-bold py-3 rounded-sm mt-4 transition-all duration-200 shadow-md active:scale-[0.98] uppercase tracking-widest text-xs"
+          disabled={loading}
+          className="w-full bg-pink-600 text-white py-3 rounded-md font-bold hover:bg-pink-700 transition"
         >
-          VERIFY & PROCEED
+          {loading ? "Verifying..." : "VERIFY"}
         </button>
-
-        {/* Resend Options */}
-        <div className="text-center pt-4">
-          <p className="text-xs text-gray-500">
-            Didn't receive the code?{' '}
-            <button 
-              type="button"
-              className="text-[#e80071] font-bold hover:underline cursor-pointer"
-            >
-              RESEND OTP
-            </button>
-          </p>
-        </div>
-
-        {/* Back Link */}
-        <div 
-          onClick={() => setStep(isLoginOtp ? "login" : "signup")}
-          className="text-center text-[11px] text-gray-400 cursor-pointer hover:text-gray-600 transition-colors mt-2"
-        >
-          ← Change Email or Phone
-        </div>
       </form>
     </div>
   );

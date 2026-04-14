@@ -229,3 +229,87 @@ export const adminLogin = createAsyncThunk(
 //     }
 //   }
 // );
+
+
+
+//  SIGNUP → SEND OTP
+
+export const registerUser = createAsyncThunk(
+  "userauth/registerUser",
+  async (userData, { rejectWithValue }) => {
+    try {
+      const res = await API.post("/userauth/signup", userData);
+     
+     console.log(" Email OTP:", res.data.emailOtp);
+console.log(" Phone OTP:", res.data.phoneOtp);
+
+      return res.data; // no token here (OTP flow)
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Signup failed"
+      );
+    }
+  }
+);
+
+
+//  VERIFY OTP
+export const verifyOtp = createAsyncThunk(
+  "userauth/verifyOtp",
+  async ({ email, emailOtp,phoneOtp }, { rejectWithValue }) => {
+    try {
+      const res = await API.post("/userauth/verify-otp", {
+        email,
+        emailOtp,
+        phoneOtp
+      });
+
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "OTP verification failed"
+      );
+    }
+  }
+);
+
+
+//  LOGIN (NO OTP)
+
+export const loginUser = createAsyncThunk(
+  "userauth/loginUser",
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const res = await API.post("/userauth/login", {
+        email,
+        password,
+      });
+
+      return res.data; 
+      // MUST return: { user, token }
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Login failed"
+      );
+    }
+  }
+);
+
+export const forgotPassword = async (data) => {
+  try {
+    const res = await API.post("/userauth/forgot-password", data);
+    return res;
+  } catch (error) {
+    console.log("API ERROR:", error); // IMPORTANT
+    throw error; // don't forget this
+  }
+};
+export const resetPassword = async (data) => {
+  try {
+    const res = await API.post("/userauth/reset-password", data);
+    return res;
+  } catch (error) {
+    console.log("API ERROR:", error); // IMPORTANT
+    throw error; // don't forget this
+  }
+};

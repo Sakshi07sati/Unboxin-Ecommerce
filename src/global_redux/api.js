@@ -2,7 +2,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const API = axios.create({
-  baseURL: `${(import.meta.env.VITE_API_URL || "http://localhost:5000")}`, // Added /api prefix to match backend routes
+  baseURL: `${(import.meta.env.VITE_API_URL || "http://localhost:5000/")}`, // Added /api prefix to match backend routes
   headers: {
     "Content-Type": "application/json",
   },

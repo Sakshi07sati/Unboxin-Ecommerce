@@ -4,7 +4,7 @@ import HeroPage from "./HeroPage";
 import ProductCategory from "../../components/Sections/ProductCategory";
 import ProductCard from "../../components/Products/ProductCard";
 import DealsSection from "../../components/Sections/DealSection";
-import { fetchProductsAPI } from "../../apis/ProductApi";
+import API  from "../../global_redux/api";
 import StyleSection from "../../components/Sections/StyleSection";
 import Footer from "../../components/common/Footer";
 
@@ -17,8 +17,8 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await fetchProductsAPI();
-        setProducts(data);
+       const res = await API.get("/products");
+setProducts(res.data.data);
       } catch (err) {
         console.error("Error fetching products:", err);
         setError("Failed to load products");
@@ -45,7 +45,7 @@ export default function Home() {
           {error && <div className="text-center text-red-500">{error}</div>}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {products && products.length > 0 && products.slice(0, 8).map((product) => (
-              <ProductCard key={product.id} product={product} />
+             <ProductCard key={product._id} product={product} />
             ))}
           </div>
         </div>

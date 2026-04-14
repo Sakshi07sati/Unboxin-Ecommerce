@@ -1,32 +1,27 @@
-import { useSelector ,useDispatch} from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
-import {fetchProducts} from "../../global_redux/features/products/productSlice";
-// import { useScrollToTop } from '../../hooks/useScrollToTop';
+import { fetchProducts } from "../../global_redux/features/product/productThunks";
+import ProductCard from "../components/Products/ProductCard"; // adjust path
 
 function Products() {
-  // useScrollToTop();
   const dispatch = useDispatch();
 
-
-  const {products,loading} = useSelector(
-    (state) => state.products.products
+  const { products, loading } = useSelector(
+    (state) => state.products
   );
 
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(fetchProducts());
-  },[dispatch])
+  }, [dispatch]);
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div>
-      {products.map((product) => (
-        <div key={product.id}>
-          <h2>{product.title}</h2>
-          <p>${product.price}</p>
-        </div>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {products?.map((product) => (
+        <ProductCard key={product._id} product={product} />
       ))}
     </div>
   );

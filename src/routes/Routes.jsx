@@ -12,6 +12,7 @@ import BannerManagement from "../pages/adminDashboard/banners/Banner";
 import AddProduct from "../pages/adminDashboard/product/AddProduct";
 import EditProduct from "../pages/adminDashboard/product/EditProduct";
 import Products from "../pages/adminDashboard/product/Product";
+import ProductDetails from "../pages/ProductSection/ProductDetails";
 
 const AllRoutes = () => {
   return (
@@ -21,6 +22,7 @@ const AllRoutes = () => {
       <Route path="/product-category" element={<ProductCategory />} />
       <Route path="/product-card" element={<ProductCard />} />
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/product/:id" element={<ProductDetails />} />
 
       {/* Protected Admin Routes */}
       <Route

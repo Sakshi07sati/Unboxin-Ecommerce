@@ -4,6 +4,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
   async (_, { rejectWithValue }) => {
+   
     try {
       const token = localStorage.getItem("adminToken");
       const res = await API.get("/products", {
@@ -16,6 +17,7 @@ export const fetchProducts = createAsyncThunk(
     }
   }
 );
+
 
 export const addProduct = createAsyncThunk(
   "products/addProduct",
@@ -133,11 +135,11 @@ export const fetchProductById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       console.log('API call for product ID:', id); // Check this
-      const res = await API.get(`/product/${id}`);
+      const res = await API.get(`/products/${id}`);
       console.log('API Response:', res.data); // Check this
       
       // Make sure you're returning the product object
-      const productData = res.data.product || res.data;
+      const productData = res.data.product || res.data.data;
       console.log('Returning product data:', productData); // Add this
       
       return productData;
