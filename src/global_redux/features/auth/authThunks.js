@@ -13,7 +13,11 @@ export const fetchAllUsers = createAsyncThunk(
       // Use adminToken if available, otherwise subAdminToken
       // Don't set header manually - let the interceptor handle it
       // This ensures proper token validation
-      const response = await API.get("/auth");
+      const response = await API.get("/userauth", {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
       return response.data; // { message: "All users", data: [...] }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch users");
@@ -173,10 +177,10 @@ export const fetchAllUsers = createAsyncThunk(
 
 // ✅ Admin Login
 export const adminLogin = createAsyncThunk(
-  "auth/adminLogin",
+  "admin/adminLogin",
   async ({ username, password }, { rejectWithValue }) => {
     try {
-      const response = await API.post("/auth/login", { username, password });
+      const response = await API.post("/admin/login", { username, password });
         console.log(response.data);
       // 🔥 CLEAR ALL TOKENS FIRST TO AVOID CONFLICTS
       // localStorage.clear();

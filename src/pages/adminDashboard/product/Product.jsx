@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchProducts, deleteProduct } from "../../../global_redux/features/product/productThunks";
 import { fetchSubCategories } from "../../../global_redux/features/subCategory/subCategoryThunks";
-import { Pencil, Trash2, Plus, Search, X, AlertTriangle, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Pencil, Trash2, Plus, Search, X, AlertTriangle, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Eye } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { exportProducts } from "@/utils/exportUtils";
 // import { usePermissions } from "@/hooks/usePermissions";
@@ -32,7 +32,7 @@ const Products = () => {
       if (!searchTerm.trim()) {
         // If search is empty, show all products
         setFilteredProducts(products);
-        console.log(products);
+      
       } else {
         const searchLower = searchTerm.toLowerCase();
         const filtered = products.filter(product => {
@@ -115,6 +115,10 @@ const Products = () => {
 
   const handleEdit = (id) => {
     navigate(`/admin/products/edit/${id}`);
+  };
+
+  const handleView = (id) => {
+    navigate(`/admin/products/view/${id}`);
   };
 
 
@@ -275,6 +279,13 @@ const Products = () => {
                   </td> */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => handleView(product._id)}
+                        className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded transition-colors"
+                        title="View Details"
+                      >
+                        <Eye size={18} />
+                      </button>
                       {canEdit && (
                         <button
                           onClick={() => handleEdit(product._id)}

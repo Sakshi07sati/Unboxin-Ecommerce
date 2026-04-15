@@ -6,6 +6,7 @@ import categoryReducer from "../features/category/categorySlice";
 import bannerReducer from "../features/banner/bannerSlice";
 import productReducer from "../features/product/productSlice";
 import subCategoryReducer from "../features/subCategory/subCategorySlice";
+import contactReducer from "../features/contacts/contactSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
@@ -30,6 +31,7 @@ export const store = configureStore({
     category: categoryReducer,
     banner: bannerReducer,
     subCategory: subCategoryReducer,
+    contacts: contactReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

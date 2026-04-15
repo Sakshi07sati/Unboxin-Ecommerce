@@ -47,7 +47,7 @@ const Sidebar = () => {
       icon: ShoppingCart,
       subItems: [
         { id: "normalOrders", name: "Normal Orders", path: "/admin/orders/normal" },
-        { id: "customizableOrders", name: "Customizable Orders", path: "/admin/orders/customizable" },
+        // { id: "customizableOrders", name: "Customizable Orders", path: "/admin/orders/customizable" },
       ],
     },
     {

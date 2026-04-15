@@ -12,10 +12,13 @@ import BannerManagement from "../pages/adminDashboard/banners/Banner";
 import AddProduct from "../pages/adminDashboard/product/AddProduct";
 import EditProduct from "../pages/adminDashboard/product/EditProduct";
 import Products from "../pages/adminDashboard/product/Product";
+import ViewProduct from "../pages/adminDashboard/product/ViewProduct";
 import ProductDetails from "../pages/ProductSection/ProductDetails";
 import SubCategory from "../pages/adminDashboard/subCategory/SubCategory";
 import SubCategoryAdd from "../pages/adminDashboard/subCategory/SubCategoryAdd";
 import SubCategoryEdit from "../pages/adminDashboard/subCategory/SubCategoryEdit";
+import User from "../pages/adminDashboard/users/User";
+import Contact from "../pages/adminDashboard/contacts/Contact";
 
 const AllRoutes = () => {
   return (
@@ -38,14 +41,17 @@ const AllRoutes = () => {
       >
         <Route index element={<Dashboard />} />
         <Route path="products" element={<Products />} />
-        <Route 
-          path="products/add" 
-          element={<AddProduct />} 
+        <Route path="users" element={<User />} />
+        <Route path="contacts" element={<Contact />} />
+        <Route
+          path="products/add"
+          element={<AddProduct />}
         />
+        <Route path="products/view/:id" element={<ViewProduct />} />
         <Route path="products/edit/:id" element={<EditProduct />} />
         {/* Category Routes */}
         <Route path="categories/add" element={<AddCategory />} />
-        
+
         {/* Placeholder for other routes (they were commented out in previous code) */}
         <Route path="category" element={<Category />} />
         <Route path="banner" element={<BannerManagement />} />

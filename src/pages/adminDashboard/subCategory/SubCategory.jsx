@@ -121,10 +121,10 @@ const SubCategory = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-bold text-slate-700">{sub.name}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-700 capitalize">{sub.name}</td>
                     <td className="px-6 py-4">
-                      <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-wider">
-                        {getCategoryName(sub.category)}
+                      <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold capitalize tracking-wider">
+                       {getCategoryName(sub.category)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">

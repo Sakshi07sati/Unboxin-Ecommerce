@@ -201,7 +201,7 @@ const SubCategoryAdd = () => {
             <div className="pt-6 border-t border-gray-200 flex gap-3">
               <button
                 type="button"
-                onClick={() => navigate("/admin/subCategory")}
+                onClick={() => navigate("/admin/subCategories")}
                 className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition active:bg-gray-100"
               >
                 Cancel
