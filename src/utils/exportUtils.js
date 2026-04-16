@@ -302,3 +302,100 @@ export const exportProducts = (products, format = 'csv') => {
   }
 };
 
+/**
+ * Export Categories data
+ */
+export const exportCategories = (categories, format = 'csv') => {
+  const columns = [
+    { key: 'category', label: 'Category Name' },
+    { key: '_id', label: 'Category ID' }
+  ];
+
+  const transformedData = categories.map(cat => ({
+    category: cat.category || cat.name || '',
+    _id: cat._id || cat.id || ''
+  }));
+
+  if (format === 'csv') {
+    exportToCSV(transformedData, columns, 'categories_report');
+  } else {
+    exportToPDF(transformedData, columns, 'Categories Report', 'categories_report');
+  }
+};
+
+/**
+ * Export SubCategories data
+ */
+export const exportSubCategories = (subCategories, categories = [], format = 'csv') => {
+  const columns = [
+    { key: 'name', label: 'SubCategory Name' },
+    { key: 'categoryName', label: 'Parent Category' },
+    { key: '_id', label: 'SubCategory ID' }
+  ];
+
+  const getCategoryName = (categoryId) => {
+    const id = typeof categoryId === "object" ? categoryId?._id : categoryId;
+    const cat = categories.find((c) => (c._id || c.id) === id);
+    return cat ? (cat.category || cat.name) : "Unknown";
+  };
+
+  const transformedData = subCategories.map(sub => ({
+    name: sub.name || '',
+    categoryName: getCategoryName(sub.category),
+    _id: sub._id || ''
+  }));
+
+  if (format === 'csv') {
+    exportToCSV(transformedData, columns, 'subcategories_report');
+  } else {
+    exportToPDF(transformedData, columns, 'SubCategories Report', 'subcategories_report');
+  }
+};
+
+/**
+ * Export Sections data
+ */
+export const exportSections = (sections, format = 'csv') => {
+  const columns = [
+    { key: 'section', label: 'Section Name' },
+    { key: 'createdAt', label: 'Date Created' },
+    { key: '_id', label: 'Section ID' }
+  ];
+
+  const transformedData = sections.map(section => ({
+    section: section.section || '',
+    createdAt: new Date(section.createdAt).toLocaleDateString('en-IN'),
+    _id: section._id || ''
+  }));
+
+  if (format === 'csv') {
+    exportToCSV(transformedData, columns, 'sections_report');
+  } else {
+    exportToPDF(transformedData, columns, 'Sections Report', 'sections_report');
+  }
+};
+
+/**
+ * Export Banners data
+ */
+export const exportBanners = (banners, format = 'csv') => {
+  const columns = [
+    { key: 'productId', label: 'Product Reference' },
+    { key: 'img', label: 'Image URL' },
+    { key: '_id', label: 'Banner ID' }
+  ];
+
+  const transformedData = banners.map(banner => ({
+    productId: banner.productId?._id || banner.productId || 'Universal',
+    img: banner.img || '',
+    _id: banner._id || ''
+  }));
+
+  if (format === 'csv') {
+    exportToCSV(transformedData, columns, 'banners_report');
+  } else {
+    exportToPDF(transformedData, columns, 'Banners Report', 'banners_report');
+  }
+};
+
+

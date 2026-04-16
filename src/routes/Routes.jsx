@@ -19,6 +19,10 @@ import SubCategoryAdd from "../pages/adminDashboard/subCategory/SubCategoryAdd";
 import SubCategoryEdit from "../pages/adminDashboard/subCategory/SubCategoryEdit";
 import User from "../pages/adminDashboard/users/User";
 import Contact from "../pages/adminDashboard/contacts/Contact";
+import Section from "../pages/adminDashboard/sections/Section";
+import SectionManagement from "../pages/adminDashboard/sections/Section";
+import SectionProduct from "../pages/adminDashboard/sectionProduct/SectionProduct";
+import AddSectionProduct from "../pages/adminDashboard/sectionProduct/AddSectionProduct";
 
 const AllRoutes = () => {
   return (
@@ -59,6 +63,9 @@ const AllRoutes = () => {
         <Route path="subCategories" element={<SubCategory />} />
         <Route path="subCategories/add" element={<SubCategoryAdd />} />
         <Route path="subCategories/edit/:id" element={<SubCategoryEdit />} />
+        <Route path="sections" element={<SectionManagement />} />
+        <Route path="section/products/add" element={<AddSectionProduct />} />
+        <Route path="section/products" element={<SectionProduct />} />
       </Route>
     </Routes>
   );

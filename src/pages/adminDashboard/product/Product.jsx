@@ -3,7 +3,25 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchProducts, deleteProduct } from "../../../global_redux/features/product/productThunks";
 import { fetchSubCategories } from "../../../global_redux/features/subCategory/subCategoryThunks";
-import { Pencil, Trash2, Plus, Search, X, AlertTriangle, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Eye } from "lucide-react";
+import { fetchCategories } from "../../../global_redux/features/category/categoryThunks";
+import { 
+  Pencil, 
+  Trash2, 
+  Plus, 
+  Search, 
+  X, 
+  AlertTriangle, 
+  Download, 
+  ChevronLeft, 
+  ChevronRight, 
+  ChevronsLeft, 
+  ChevronsRight, 
+  Eye,
+  ChevronDown,
+  FileSpreadsheet,
+  FileText,
+  Filter
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 import { exportProducts } from "@/utils/exportUtils";
 // import { usePermissions } from "@/hooks/usePermissions";
@@ -12,10 +30,17 @@ const Products = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { products, status, error } = useSelector((state) => state.products);
+  const { categories } = useSelector((state) => state.category);
+  const { subCategories } = useSelector((state) => state.subCategory);
+  
   const canAdd = true;
   const canEdit = true;
   const canDelete = true;
+  
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState("");
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, productId: null, productName: "" });
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,38 +48,36 @@ const Products = () => {
 
   useEffect(() => {
     dispatch(fetchProducts());
+    dispatch(fetchCategories());
     dispatch(fetchSubCategories());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount - dispatch is stable
 
   useEffect(() => {
     if (products) {
-      if (!searchTerm.trim()) {
-        // If search is empty, show all products
-        setFilteredProducts(products);
+      const searchLower = searchTerm.toLowerCase().trim();
       
-      } else {
-        const searchLower = searchTerm.toLowerCase();
-        const filtered = products.filter(product => {
-          const name = product.name?.toLowerCase() || "";
-          const category = (product.category?.category || product.category?.name || (typeof product.category === 'string' ? product.category : ""))?.toLowerCase() || "";
-          const subCategory = (product.subCategory?.name || (typeof product.subCategory === 'string' ? product.subCategory : ""))?.toLowerCase() || "";
-          const productId = product._id?.toLowerCase() || "";
-          
-          return (
-            name.includes(searchLower) ||
-            category.includes(searchLower) ||
-            subCategory.includes(searchLower) ||
-            productId.includes(searchLower)
-          );
-        });
-        setFilteredProducts(filtered);
-      }
+      const filtered = products.filter(product => {
+        // Search Match
+        const nameMatch = !searchLower || (product.name?.toLowerCase().includes(searchLower) || product._id?.toLowerCase().includes(searchLower));
+        
+        // Category Match
+        const categoryId = typeof product.category === 'object' ? product.category?._id : product.category;
+        const categoryMatch = !selectedCategory || categoryId === selectedCategory;
+        
+        // SubCategory Match
+        const subCategoryId = typeof product.subCategory === 'object' ? product.subCategory?._id : product.subCategory;
+        const subCategoryMatch = !selectedSubCategory || subCategoryId === selectedSubCategory;
+        
+        return nameMatch && categoryMatch && subCategoryMatch;
+      });
+      
+      setFilteredProducts(filtered);
     } else {
       setFilteredProducts([]);
     }
     setCurrentPage(1); // Reset to first page when search/filter changes
-  }, [searchTerm, products]);
+  }, [searchTerm, products, selectedCategory, selectedSubCategory]);
 
   // Pagination logic
   const paginatedProducts = useMemo(() => {
@@ -148,26 +171,72 @@ const Products = () => {
       <div className="bg-white rounded-lg shadow">
         {/* Header Section */}
         <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-800">Products Management</h2>
-              <p className="text-gray-600 text-sm mt-1">Manage your product inventory</p>
+              <p className="text-gray-600 text-sm mt-1">Manage your product inventory with advanced filters</p>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  exportProducts(filteredProducts, 'csv');
-                  toast.success('CSV file downloaded successfully!');
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
-              >
-                <Download size={20} />
-                Download Data (CSV)
-              </button>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Export Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-sm font-medium"
+                >
+                  <Download size={18} />
+                  Export
+                  <ChevronDown size={16} className={`transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {exportDropdownOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setExportDropdownOpen(false)}
+                    ></div>
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <button
+                        onClick={() => {
+                          exportProducts(filteredProducts, 'csv');
+                          toast.success('CSV Exported successfully!');
+                          setExportDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <FileSpreadsheet size={16} className="text-green-600" />
+                        Download CSV
+                      </button>
+                      <button
+                        onClick={() => {
+                          exportProducts(filteredProducts, 'csv'); // Standard CSV is Excel-ready (with BOM)
+                          toast.success('Excel-ready CSV exported successfully!');
+                          setExportDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <FileSpreadsheet size={16} className="text-blue-600" />
+                        Download Excel
+                      </button>
+                      <button
+                        onClick={() => {
+                          exportProducts(filteredProducts, 'pdf');
+                          toast.success('PDF Report generated successfully!');
+                          setExportDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <FileText size={16} className="text-red-500" />
+                        Download PDF
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
               {canAdd && (
                 <button
                   onClick={handleAdd}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm font-medium"
                 >
                   <Plus size={20} />
                   Add New Product
@@ -176,16 +245,59 @@ const Products = () => {
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search products by name, category, or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Product name or ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setSelectedSubCategory(""); // Clear subcategory when category changes
+                }}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm appearance-none cursor-pointer"
+              >
+                <option value="">All Categories</option>
+                {categories?.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.category || cat.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+            </div>
+
+            {/* SubCategory Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <select
+                value={selectedSubCategory}
+                onChange={(e) => setSelectedSubCategory(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm appearance-none cursor-pointer"
+              >
+                <option value="">All SubCategories</option>
+                {subCategories
+                  ?.filter(sub => !selectedCategory || (typeof sub.category === 'object' ? sub.category?._id === selectedCategory : sub.category === selectedCategory))
+                  .map((sub) => (
+                    <option key={sub._id} value={sub._id}>
+                      {sub.name}
+                    </option>
+                  ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+            </div>
           </div>
         </div>
 

@@ -87,7 +87,7 @@ const Sidebar = () => {
       id: "Sections",
       name: "Sections",
       icon: Package,
-      path: "/admin/section",
+      path: "/admin/sections",
     },
     {
       id: "Section Products Management",
@@ -130,7 +130,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-slate-950 border-r border-slate-900 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:sticky top-0 left-0 h-screen z-50 w-72 bg-slate-950 border-r border-slate-900 transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
