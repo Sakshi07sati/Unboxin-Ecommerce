@@ -45,10 +45,7 @@ const Sidebar = () => {
       id: "orders",
       name: "Orders",
       icon: ShoppingCart,
-      subItems: [
-        { id: "normalOrders", name: "Normal Orders", path: "/admin/orders/normal" },
-        // { id: "customizableOrders", name: "Customizable Orders", path: "/admin/orders/customizable" },
-      ],
+      path: "/admin/orders",
     },
     {
       id: "contacts",
@@ -65,15 +62,21 @@ const Sidebar = () => {
         { id: "viewProducts", name: "View Products", path: "/admin/products" },
       ],
     },
-    {
+     {
       id: "Categories",
       name: "Categories",
       icon: Package,
-      subItems: [
-        { id: "Add Category", name: "Add Category", path: "/admin/categories/add" },
-        { id: "View Category", name: "View Category", path: "/admin/category" },
-      ],
+      path: "/admin/category",
     },
+    // {
+    //   id: "Categories",
+    //   name: "Categories",
+    //   icon: Package,
+    //   subItems: [
+    //     { id: "Add Category", name: "Add Category", path: "/admin/categories/add" },
+    //     { id: "View Category", name: "View Category", path: "/admin/category" },
+    //   ],
+    // },
     {
       id: "SubCategories",
       name: "SubCategories",
@@ -130,7 +133,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 h-screen z-50 w-72 bg-slate-950 border-r border-slate-900 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:sticky top-0 left-0 h-screen z-50 w-64 bg-slate-950 border-r border-slate-900 transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >

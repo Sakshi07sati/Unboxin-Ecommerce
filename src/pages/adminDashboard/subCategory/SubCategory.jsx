@@ -10,9 +10,20 @@ import {
 import { 
   selectCategories 
 } from "../../../global_redux/features/category/categorySlice";
-import { Pencil, Trash2, Plus, Search, Image as ImageIcon } from "lucide-react";
+import { 
+  Pencil, 
+  Trash2, 
+  Plus, 
+  Search, 
+  Image as ImageIcon,
+  Download,
+  ChevronDown,
+  FileSpreadsheet,
+  FileText 
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { exportSubCategories } from "@/utils/exportUtils";
 
 const SubCategory = () => {
   const dispatch = useDispatch();
@@ -21,6 +32,7 @@ const SubCategory = () => {
   const categories = useSelector(selectCategories);
   
   const [searchTerm, setSearchTerm] = useState("");
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
   const token = localStorage.getItem("adminToken") || localStorage.getItem("token");
 
@@ -53,108 +65,177 @@ const SubCategory = () => {
     sub.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     getCategoryName(sub.category).toLowerCase().includes(searchTerm.toLowerCase())
   );
-  if (loading && subCategories.length === 0) return (
-    <div className="flex justify-center items-center h-64">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    </div>
-  );
+
+  // loading handled inline now to avoid jumpy UI
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto bg-white p-8 rounded-lg shadow-xl border border-gray-100">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h2 className="text-3xl font-black text-slate-800 tracking-tight">SubCategory Management</h2>
-            <p className="text-slate-500 mt-1">Manage secondary product classifications</p>
-          </div>
-          <button
-            onClick={() => navigate("/admin/subCategories/add")}
-            className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-2xl hover:bg-slate-800 transition-all font-bold shadow-lg shadow-slate-200"
-          >
-            <Plus size={20} />
-            Add SubCategory
-          </button>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative mb-8">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search by name or parent category..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-800 transition-all font-medium text-slate-700"
-          />
-        </div>
-
-        {error && <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl mb-6 font-medium">{error}</div>}
-
-        <div className="overflow-hidden rounded-2xl border border-slate-100">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Image</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Name</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Parent Category</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filteredSubCategories.length > 0 ? (
-                filteredSubCategories.map((sub) => (
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="p-6 border-b border-gray-200 bg-white rounded-t-lg shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">SubCategory Management</h2>
+              <p className="text-gray-600 text-sm mt-1">Refine your product taxonomy with distinct sub-classifications</p>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Export Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-sm font-medium"
+                >
+                  <Download size={18} />
+                  Export
+                  <ChevronDown size={16} className={`transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
                 
-                  <tr key={sub._id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-sm">
-                        {sub.img ? (
-                          <img 
-                            src={sub.img} 
-                            alt={sub.name} 
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                            crossOrigin="anonymous"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-300">
-                            <ImageIcon size={24} />
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-slate-700 capitalize">{sub.name}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold capitalize tracking-wider">
-                       {getCategoryName(sub.category)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => navigate(`/admin/subCategories/edit/${sub._id}`)}
-                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(sub._id)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
+                {exportDropdownOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setExportDropdownOpen(false)}
+                    ></div>
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <button
+                        onClick={() => {
+                          exportSubCategories(filteredSubCategories, categories, 'csv');
+                          toast.success('CSV Exported successfully!');
+                          setExportDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-50 text-left"
+                      >
+                        <FileSpreadsheet size={16} className="text-green-600" />
+                        Download CSV
+                      </button>
+                      <button
+                        onClick={() => {
+                          exportSubCategories(filteredSubCategories, categories, 'csv');
+                          toast.success('Excel-ready file exported!');
+                          setExportDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-50 text-left"
+                      >
+                        <FileSpreadsheet size={16} className="text-blue-600" />
+                        Download Excel
+                      </button>
+                      <button
+                        onClick={() => {
+                          exportSubCategories(filteredSubCategories, categories, 'pdf');
+                          toast.success('PDF Report generated!');
+                          setExportDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium text-left"
+                      >
+                        <FileText size={16} className="text-red-500" />
+                        Download PDF
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <button
+                onClick={() => navigate("/admin/subCategories/add")}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm font-medium"
+              >
+                <Plus size={20} />
+                Add New SubCategory
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search Bar */}
+            <div className="md:col-span-3 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Search subcategories or parents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
+              />
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 flex items-center justify-between">
+              <span className="text-xs text-gray-500 font-medium">Total:</span>
+              <span className="text-sm font-bold text-gray-800">{filteredSubCategories.length}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Loading Indicator */}
+        {loading && subCategories.length === 0 && (
+          <div className="bg-white p-8 rounded-b-lg shadow-sm border border-gray-100 flex items-center justify-center gap-3">
+            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-gray-600 font-medium">Loading subcategories...</p>
+          </div>
+        )}
+
+        {/* content */}
+        {!error && (subCategories.length > 0 || !loading) && (
+          <div className="bg-white rounded-b-lg shadow-sm border-x border-b border-gray-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Image</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Parent Category</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredSubCategories.length > 0 ? (
+                  filteredSubCategories.map((sub) => (
+                    <tr key={sub._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+                          {sub.img ? (
+                            <img src={sub.img} alt={sub.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
+                          ) : (
+                            <ImageIcon size={20} className="text-gray-300" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-gray-800 capitalize leading-tight">{sub.name}</td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 uppercase tracking-tighter">
+                          {getCategoryName(sub.category)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => navigate(`/admin/subCategories/edit/${sub._id}`)}
+                            className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Pencil size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(sub._id)}
+                            className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-12 text-center text-gray-500 text-sm italic">
+                      No subcategories found matching your criteria.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="px-6 py-12 text-center text-slate-400 font-medium">
-                    No subcategories found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

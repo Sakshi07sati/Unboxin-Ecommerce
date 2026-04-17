@@ -1,7 +1,7 @@
 import { fetchAllUsers } from '@/global_redux/features/auth/authThunks';
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Users as UsersIcon, Mail, Phone, Calendar, CheckCircle, XCircle, UserCheck, Download, FileSpreadsheet, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Users as UsersIcon, Mail, Phone, Calendar, CheckCircle, XCircle, UserCheck, Download, FileSpreadsheet, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, FilterX } from 'lucide-react';
 import { exportUsers } from '@/utils/exportUtils';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,8 @@ const User = () => {
   
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -28,21 +30,41 @@ const User = () => {
     }
   }, [dispatch, admin]);
 
-  // Filter users based on search and AI usage
+  // Filter users based on search and date range
   const filteredUsers = useMemo(() => {
     const filtered = allUsers?.filter(user => {
       const matchesSearch = 
+        !searchTerm ||
         user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.phone?.includes(searchTerm);
       
-      return matchesSearch;
+      // Date range matching
+      let matchesDate = true;
+      if (user.createdAt) {
+        const registrationDate = new Date(user.createdAt);
+        registrationDate.setHours(0, 0, 0, 0);
+
+        if (startDate) {
+          const from = new Date(startDate);
+          from.setHours(0, 0, 0, 0);
+          if (registrationDate < from) matchesDate = false;
+        }
+
+        if (endDate) {
+          const to = new Date(endDate);
+          to.setHours(0, 0, 0, 0);
+          if (registrationDate > to) matchesDate = false;
+        }
+      }
+      
+      return matchesSearch && matchesDate;
     }) || [];
     
     // Reset to first page when filters change
     setCurrentPage(1);
     return filtered;
-  }, [allUsers, searchTerm]);
+  }, [allUsers, searchTerm, startDate, endDate]);
 
   // Pagination logic
   const paginatedUsers = useMemo(() => {
@@ -60,6 +82,13 @@ const User = () => {
 
   const handleItemsPerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setStartDate('');
+    setEndDate('');
     setCurrentPage(1);
   };
 
@@ -160,8 +189,6 @@ const User = () => {
             <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-600"></div>
           </div>
 
-
-
           <div 
             className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
             style={{ animation: 'slideInUp 0.5s ease-out 0.2s backwards' }}
@@ -181,24 +208,56 @@ const User = () => {
 
         {/* Filters and Search */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 animate-fadeIn">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
             {/* Search Input */}
-            <div className="flex-1">
+            <div className="flex-[2]">
+              <label className="block text-xs font-semibold text-gray-500 mb-1 ml-1 uppercase tracking-wider">Search Users</label>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search by name, email, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
-                <UsersIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
             </div>
+
+            {/* Date From */}
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-500 mb-1 ml-1 uppercase tracking-wider">From Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+            </div>
+
+            {/* Date To */}
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-500 mb-1 ml-1 uppercase tracking-wider">To Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+            </div>
+
+            {/* Reset Button */}
+            <button
+              onClick={handleClearFilters}
+              className="p-3 bg-gray-100 text-gray-500 rounded-xl hover:bg-gray-200 transition-all"
+              title="Clear Filters"
+            >
+              <FilterX className="w-6 h-6" />
+            </button>
           </div>
 
           <div className="mt-4 text-sm text-gray-600">
-            Showing <span className="font-semibold text-gray-900">{filteredUsers.length}</span> of <span className="font-semibold text-gray-900">{stats.total}</span> users
+            Showing <span className="font-semibold text-gray-900">{filteredUsers.length}</span> matching users
           </div>
         </div>
 
@@ -224,7 +283,6 @@ const User = () => {
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Contact
                   </th>
-
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Joined Date
                   </th>
@@ -281,14 +339,12 @@ const User = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="px-6 py-12 text-center">
+                    <td colSpan="3" className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center justify-center">
                         <UsersIcon className="w-12 h-12 text-gray-300 mb-3" />
                         <p className="text-gray-500 font-medium">No users found</p>
                         <p className="text-gray-400 text-sm mt-1">
-                          {searchTerm
-                            ? 'Try adjusting your filters'
-                            : 'Users will appear here once they register'}
+                          Try adjusting your filters (search or date range)
                         </p>
                       </div>
                     </td>

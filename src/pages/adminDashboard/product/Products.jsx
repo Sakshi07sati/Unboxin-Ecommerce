@@ -33,7 +33,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const Products = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { products, status, error } = useSelector((state) => state.products);
+  const { products, status, error, totalPages, totalProducts } = useSelector((state) => state.products);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, productId: null, productName: "" });
@@ -41,9 +41,9 @@ const Products = () => {
   const [itemsPerPage, setItemsPerPage ] = useState(10);
 
   useEffect(() => {
-    dispatch(fetchProducts());
+    dispatch(fetchProducts({ page: currentPage, limit: itemsPerPage }));
     dispatch(fetchSubCategories());
-  }, [dispatch]);
+  }, [dispatch, currentPage, itemsPerPage]);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -60,20 +60,21 @@ const Products = () => {
     });
   }, [searchTerm, products]);
 
-  const paginatedProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredProducts, currentPage, itemsPerPage]);
+  // Since we use server-side pagination, paginatedProducts is just the filtered list
+  // or simply the products from state if we trust the server results.
+  const paginatedProducts = filteredProducts;
 
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  // const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   const inventoryStats = useMemo(() => {
     if (!products) return { total: 0, stockValue: 0, categories: 0 };
-    const total = products.length;
+    // total is now the global count from Redux
+    const total = totalProducts;
+    // value and uniqueCats are currently based on the loaded page
     const value = products.reduce((acc, p) => acc + (Number(p.originalPrice) || 0), 0);
     const uniqueCats = new Set(products.map(p => p.category?._id || p.category)).size;
     return { total, stockValue: value, categories: uniqueCats };
-  }, [products]);
+  }, [products, totalProducts]);
 
   const handleDelete = async () => {
     const { productId } = deleteModal;
@@ -85,6 +86,7 @@ const Products = () => {
       toast.dismiss(loadingToast);
       if (res.type.endsWith("fulfilled")) {
         toast.success("Product deleted successfully");
+        dispatch(fetchProducts({ page: currentPage, limit: itemsPerPage })); // Refetch current page
       } else {
         toast.error(res.payload || "Delete failed");
       }
@@ -316,16 +318,39 @@ const Products = () => {
                   >
                     {[5, 10, 20, 50, 100].map(v => <option key={v} value={v}>{v} Blocks</option>)}
                   </select>
-              </div>
             </div>
-
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
                <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="p-3 bg-white border border-slate-100 rounded-xl disabled:opacity-30 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm active:scale-90"><ChevronsLeft size={18} /></button>
                <button onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1} className="p-3 bg-white border border-slate-100 rounded-xl disabled:opacity-30 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm active:scale-90"><ChevronLeft size={18} /></button>
                
-               <div className="px-8 py-3 bg-slate-950 rounded-2xl text-white shadow-2xl relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-8 h-8 bg-blue-500/20 rounded-full blur-xl group-hover:blur-2xl transition-all"></div>
-                  <span className="text-xs font-black tracking-[0.2em] relative z-10 uppercase">Registry {currentPage} / {totalPages}</span>
+               <div className="flex items-center gap-1">
+                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                   if (
+                     page === 1 ||
+                     page === totalPages ||
+                     (page >= currentPage - 1 && page <= currentPage + 1)
+                   ) {
+                     return (
+                       <button
+                         key={page}
+                         onClick={() => setCurrentPage(page)}
+                         className={`w-10 h-10 rounded-xl font-black text-xs transition-all active:scale-90 ${
+                           currentPage === page
+                             ? "bg-slate-900 text-white shadow-lg"
+                             : "bg-white border border-slate-100 text-slate-600 hover:bg-slate-50"
+                         }`}
+                       >
+                         {page}
+                       </button>
+                     );
+                   } else if (
+                     (page === 2 && currentPage > 3) ||
+                     (page === totalPages - 1 && currentPage < totalPages - 2)
+                   ) {
+                     return <span key={page} className="text-slate-300">...</span>;
+                   }
+                   return null;
+                 })}
                </div>
 
                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={currentPage === totalPages} className="p-3 bg-white border border-slate-100 rounded-xl disabled:opacity-30 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm active:scale-90"><ChevronRight size={18} /></button>

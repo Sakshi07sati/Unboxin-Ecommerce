@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchBanners,
@@ -16,16 +16,19 @@ import {
   Image as ImageIcon,
   Upload,
   Loader2,
+  RefreshCw,
+  Download,
+  Search,
 } from "lucide-react";
 
 /**
  * BannerManagement Component
- * Defensive and simplified administrative interface for managing carousel banners.
+ * Standardized Simple UI for managing carousel banners.
  */
 const BannerManagement = () => {
   const dispatch = useDispatch();
+  const [searchTerm, setSearchTerm] = useState("");
   
-  // Defensive selector to prevent crash if 'banner' state is missing
   const bannerState = useSelector((s) => s.banner) || {
     banners: [],
     loading: false,
@@ -36,7 +39,7 @@ const BannerManagement = () => {
   const { banners, loading, error, success } = bannerState;
   
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState("add"); // 'add' or 'edit'
+  const [modalMode, setModalMode] = useState("add"); 
   const [currentBanner, setCurrentBanner] = useState(null);
   const [formData, setFormData] = useState({
     productId: "",
@@ -44,25 +47,16 @@ const BannerManagement = () => {
   });
   const [preview, setPreview] = useState(null);
 
-  // Fetch banners on mount with error handling
   useEffect(() => {
-    const loadBanners = async () => {
-      try {
-        await dispatch(fetchBanners()).unwrap();
-      } catch (err) {
-        console.error("Failed to fetch banners:", err);
-      }
-    };
-    loadBanners();
+    dispatch(fetchBanners());
   }, [dispatch]);
 
-  // Handle Redux state changes (success/error)
   useEffect(() => {
     if (success) {
-      toast.success(modalMode === "add" ? "Banner added successfully" : "Banner updated successfully");
+      toast.success(modalMode === "add" ? "Banner added" : "Banner updated");
       closeModal();
       dispatch(clearBannerState());
-      dispatch(fetchBanners()); // Refresh list
+      dispatch(fetchBanners());
     }
     if (error) {
       toast.error(typeof error === 'string' ? error : "An error occurred");
@@ -70,7 +64,23 @@ const BannerManagement = () => {
     }
   }, [success, error, dispatch, modalMode]);
 
-  // Modal Handlers
+  const filteredBanners = useMemo(() => {
+    if (!Array.isArray(banners)) return [];
+    return banners.filter(b => 
+      (b.productId?._id || b.productId || "").toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [banners, searchTerm]);
+
+  const handleRefresh = () => {
+    dispatch(fetchBanners());
+    toast.success("Data refreshed");
+  };
+
+  const handleExport = () => {
+    toast.success("Exporting banner list...");
+    // Logic for export can be added here
+  };
+
   const openAddModal = () => {
     setModalMode("add");
     setFormData({ productId: "", img: null });
@@ -79,30 +89,25 @@ const BannerManagement = () => {
     setShowModal(true);
   };
 
-   const openEditModal = (banner) => {
-  if (!banner) return;
-
-  setModalMode("edit");
-  setCurrentBanner(banner);
-
-  setFormData({
-    productId: banner.productId?._id || banner.productId || "",
-    img: null,
-  });
-
-  setPreview(banner.img);
-  setShowModal(true);
-};
+  const openEditModal = (banner) => {
+    if (!banner) return;
+    setModalMode("edit");
+    setCurrentBanner(banner);
+    setFormData({
+      productId: banner.productId?._id || banner.productId || "",
+      img: null,
+    });
+    setPreview(banner.img);
+    setShowModal(true);
+  };
 
   const closeModal = () => {
     setShowModal(false);
-    // Cleanup local state
     setFormData({ productId: "", img: null });
     setPreview(null);
     setCurrentBanner(null);
   };
 
-  // Form Handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
@@ -111,7 +116,6 @@ const BannerManagement = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Basic validation
       if (!file.type.startsWith('image/')) {
         return toast.error("Please select a valid image file");
       }
@@ -122,221 +126,204 @@ const BannerManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const data = new FormData();
-    const productId = formData.productId ? formData.productId.trim() : "";
-    data.append("productId", productId);
-    
-    if (formData.img) {
-      data.append("img", formData.img);
-    }
+    data.append("productId", formData.productId.trim());
+    if (formData.img) data.append("img", formData.img);
 
-    try {
-      if (modalMode === "add") {
-        if (!formData.img) return toast.error("Please upload an image");
-        await dispatch(addBanner(data)).unwrap();
-      } else {
-        if (!currentBanner?._id) return toast.error("Invalid banner identification");
-        await dispatch(updateBanner({ id: currentBanner._id, formData: data })).unwrap();
-      }
-    } catch (err) {
-      console.error("Submit failed:", err);
+    if (modalMode === "add") {
+      if (!formData.img) return toast.error("Please upload an image");
+      dispatch(addBanner(data));
+    } else {
+      dispatch(updateBanner({ id: currentBanner._id, formData: data }));
     }
   };
 
   const handleDelete = (id) => {
-    if (!id) return;
-    if (window.confirm("Are you sure you want to delete this banner?")) {
-      dispatch(deleteBanner(id))
-        .unwrap()
-        .then(() => toast.success("Banner deleted"))
-        .catch((err) => toast.error(typeof err === 'string' ? err : "Failed to delete"));
+    if (window.confirm("Delete this banner?")) {
+      dispatch(deleteBanner(id));
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+    <div className="min-h-screen bg-white p-6 md:p-10">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Banner Management</h1>
-            <p className="text-sm text-gray-500 mt-1">Configure homepage carousel and promotional graphics</p>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Banner Management</h1>
+            <p className="text-gray-500 text-sm mt-1">Configure homepage carousel and promotional graphics</p>
           </div>
-          <button
-            onClick={openAddModal}
-            className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-slate-800 transition-all shadow-sm font-semibold active:scale-95"
-          >
-            <Plus size={18} />
-            Create Banner
-          </button>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <button
+              onClick={handleRefresh}
+              className="p-2.5 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-sm"
+              title="Refresh Data"
+            >
+              <RefreshCw size={18} className={`text-gray-500 ${loading ? "animate-spin" : ""}`} />
+            </button>
+
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all shadow-sm text-sm font-bold"
+            >
+              <Download size={16} /> Export
+            </button>
+
+            <button
+              onClick={openAddModal}
+              className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-sm font-bold text-sm"
+            >
+              <Plus size={18} /> Add Banner
+            </button>
+          </div>
         </div>
 
-        {/* Global Loading Spinner for Initial Load */}
-        {loading && (!banners || banners.length === 0) && (
-          <div className="flex flex-col items-center justify-center py-24 gap-3">
-             <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
-             <p className="text-sm font-medium text-slate-500">Retrieving banner data...</p>
+        {/* Filters/Search */}
+        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col md:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder="Search by Product ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+            />
           </div>
-        )}
+        </div>
 
-        {/* Grid List */}
-        {!loading && (!banners || banners.length === 0) ? (
-          <div className="bg-white border-2 border-dashed border-gray-200 text-center py-20 rounded-2xl">
+        {/* Content */}
+        {loading && (!banners || banners.length === 0) ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+            <p className="text-sm font-medium text-gray-500">Loading banners...</p>
+          </div>
+        ) : filteredBanners.length === 0 ? (
+          <div className="bg-white border-2 border-dashed border-gray-100 text-center py-20 rounded-xl">
             <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-               <ImageIcon className="text-gray-300" size={32} />
+              <ImageIcon className="text-gray-300" size={32} />
             </div>
-            <h3 className="text-gray-900 font-bold">No Active Banners</h3>
-            <p className="text-gray-500 text-sm mt-1">Add banners to highlight your best products.</p>
+            <h3 className="text-gray-900 font-bold">No Banners Found</h3>
+            <p className="text-gray-500 text-sm mt-1">Try adjusting your search or add a new banner.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {Array.isArray(banners) && banners.map((b) => (
-              <div key={b._id || Math.random()} className="bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all group relative">
-                <div className="aspect-[16/9] relative bg-gray-50 overflow-hidden">
+            {filteredBanners.map((b) => (
+              <div key={b._id} className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all group shadow-sm">
+                <div className="aspect-[16/9] relative bg-gray-50 overflow-hidden border-b border-gray-100">
                   <img
                     src={b.img}
                     alt="banner"
-                    crossOrigin="anonymous"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => { e.target.src = "https://via.placeholder.com/400x225?text=Image+Load+Error"; }}
+                    onError={(e) => { e.target.src = "https://via.placeholder.com/400x225?text=Error"; }}
                   />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4 backdrop-blur-[2px]">
+                  <div className="absolute top-4 right-4 flex gap-2">
                     <button
                       onClick={() => openEditModal(b)}
-                      className="bg-white/90 p-3 rounded-full hover:bg-white text-slate-800 transition-all hover:scale-110"
-                      title="Edit"
+                      className="bg-white/90 p-2 rounded-lg hover:bg-white text-gray-700 shadow-sm border border-gray-100 transition-all"
                     >
-                      <Pencil size={20} />
+                      <Pencil size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(b._id)}
-                      className="bg-white/90 p-3 rounded-full hover:bg-red-600 hover:text-white text-red-600 transition-all hover:scale-110"
-                      title="Delete"
+                      className="bg-white/90 p-2 rounded-lg hover:bg-red-50 text-red-600 shadow-sm border border-gray-100 transition-all"
                     >
-                      <Trash2 size={20} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Asset</p>
+                <div className="p-3">
+                  <div className="flex justify-between items-center">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Linked Product</p>
+                      <p className="text-sm font-bold text-gray-900 ">
+                        {b.productId?._id || b.productId || "Storewide Banner"}
+                      </p>
+                    </div>
+                    <span className="px-3 py-1 bg-green-50 text-green-700 font-bold text-[10px] rounded-full border border-green-100">
+                      ACTIVE
+                    </span>
                   </div>
-                  {/* <h4 className="text-sm font-bold text-slate-800 truncate">
-                    Product: {b.productId || "Universal Carousel"}
-                  </h4> */}
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
 
-      {/* Styled Modal */}
-      <AnimatePresence>
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20">
-            <div className="flex justify-between items-center px-8 py-6 border-b border-gray-50">
-              <div>
-                <h3 className="text-xl font-black text-slate-800 tracking-tight">
-                  {modalMode === "add" ? "Create New Banner" : "Edit Digital Asset"}
+        {/* Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+                <h3 className="text-lg font-bold text-gray-900">
+                  {modalMode === "add" ? "Create New Banner" : "Edit Banner"}
                 </h3>
-                <p className="text-xs text-slate-400 font-medium mt-1">Configure your storefront visuals.</p>
+                <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  <X size={20} />
+                </button>
               </div>
-              <button 
-                onClick={closeModal} 
-                className="bg-gray-50 p-2 rounded-xl text-gray-400 hover:text-red-500 transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-8">
-              {/* Product ID */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Target Product Reference</label>
-                <div className="relative">
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Linked Product ID</label>
                   <input
                     type="text"
                     name="productId"
                     value={formData.productId}
                     onChange={handleChange}
-                    placeholder="Enter ID (e.g. PRD-882)"
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-slate-900/5 focus:border-slate-800 outline-none transition-all font-medium text-slate-700"
-                    required={modalMode === "add"}
+                    placeholder="Enter Product ID Reference"
+                    className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all font-bold"
                   />
                 </div>
-              </div>
 
-              {/* Image Upload */}
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Visual Component</label>
-                <div className="flex flex-col gap-4">
-                   {preview ? (
-                    <div className="relative group rounded-3xl overflow-hidden aspect-[15/7] border-2 border-slate-50 shadow-inner">
-                      <img src={preview} alt="preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <label htmlFor="img-upload" className="bg-white text-slate-900 px-6 py-2 rounded-xl font-bold text-sm cursor-pointer hover:scale-105 transition-transform">
-                          Change Image
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Banner Image</label>
+                  <div className="flex flex-col gap-4">
+                    {preview ? (
+                      <div className="relative group rounded-lg overflow-hidden aspect-[16/7] border border-gray-100">
+                        <img src={preview} alt="preview" className="w-full h-full object-cover" />
+                        <label htmlFor="img-upload" className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                          <span className="bg-white text-gray-900 px-4 py-1.5 rounded-lg font-bold text-xs">Change Image</span>
                         </label>
                       </div>
-                    </div>
-                  ) : (
-                    <label 
-                      htmlFor="img-upload"
-                      className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-[2rem] p-10 bg-slate-50/50 cursor-pointer hover:bg-slate-50 hover:border-slate-400 transition-all group"
-                    >
-                      <Upload size={32} className="text-slate-300 group-hover:text-slate-600 mb-2 transition-colors" />
-                      <span className="text-sm font-bold text-slate-800">Choose visual asset</span>
-                      <span className="text-[10px] text-slate-400 mt-1 uppercase tracking-tighter">JPG, PNG, WebP recommended</span>
-                    </label>
-                  )}
-                  <input
-                    id="img-upload"
-                    type="file"
-                    className="hidden"
-                    onChange={handleImageChange}
-                    accept="image/*"
-                  />
+                    ) : (
+                      <label 
+                        htmlFor="img-upload"
+                        className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg p-10 bg-gray-50 cursor-pointer hover:bg-white hover:border-gray-300 transition-all group"
+                      >
+                        <Upload size={32} className="text-gray-300 group-hover:text-blue-500 mb-2 transition-colors" />
+                        <span className="text-sm font-bold text-gray-700">Click to upload banner</span>
+                        <span className="text-[10px] text-gray-400 mt-1 uppercase">Best ratio 16:9</span>
+                      </label>
+                    )}
+                    <input id="img-upload" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+                  </div>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="flex-1 border-2 border-slate-100 px-6 py-4 rounded-2xl font-bold text-slate-400 hover:bg-slate-50 transition-colors"
-                >
-                  Discard
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-[2] bg-slate-900 text-white px-6 py-4 rounded-2xl font-bold hover:bg-black disabled:bg-slate-300 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200"
-                >
-                  {loading ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    modalMode === "add" ? "Deploy Banner" : "Update Asset"
-                  )}
-                </button>
-              </div>
-            </form>
+                <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 disabled:bg-blue-300 transition-all flex items-center justify-center gap-2"
+                  >
+                    {loading ? <Loader2 size={18} className="animate-spin" /> : (modalMode === "add" ? "Save Banner" : "Update Banner")}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-      </AnimatePresence>
-      
-      {/* Fallback for AnimatePresence if framer-motion is not fully loaded */}
-      {!window.framerMotionLoaded && <div id="framer-motion-polyfill" />}
+        )}
+      </div>
     </div>
   );
 };
-
-// Dummy component to avoid crash if some versions of framer-motion differ
-const AnimatePresence = ({ children }) => <>{children}</>;
 
 export default BannerManagement;

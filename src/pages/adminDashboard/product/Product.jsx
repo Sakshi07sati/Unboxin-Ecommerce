@@ -29,7 +29,7 @@ import { exportProducts } from "@/utils/exportUtils";
 const Products = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { products, status, error } = useSelector((state) => state.products);
+  const { products, status, error, totalPages, totalProducts } = useSelector((state) => state.products);
   const { categories } = useSelector((state) => state.category);
   const { subCategories } = useSelector((state) => state.subCategory);
   
@@ -47,11 +47,11 @@ const Products = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
-    dispatch(fetchProducts());
+    dispatch(fetchProducts({ page: currentPage, limit: itemsPerPage }));
     dispatch(fetchCategories());
     dispatch(fetchSubCategories());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount - dispatch is stable
+  }, [dispatch, currentPage, itemsPerPage]); // Run when page or limit changes
 
   useEffect(() => {
     if (products) {
@@ -80,13 +80,10 @@ const Products = () => {
   }, [searchTerm, products, selectedCategory, selectedSubCategory]);
 
   // Pagination logic
-  const paginatedProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredProducts.slice(startIndex, endIndex);
-  }, [filteredProducts, currentPage, itemsPerPage]);
+  // Since we use server-side pagination, paginatedProducts is just the filtered list
+  const paginatedProducts = filteredProducts;
 
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  // const totalPagesCount = Math.ceil(filteredProducts.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -122,6 +119,7 @@ const Products = () => {
           duration: 3000,
           icon: "✅",
         });
+        dispatch(fetchProducts({ page: currentPage, limit: itemsPerPage })); // Refetch current page
       } else {
         toast.error(res.payload || "Failed to delete product", {
           duration: 4000,
@@ -338,12 +336,7 @@ const Products = () => {
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   SubCategory
                 </th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Discount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Rating
-                </th> */}
+               
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -460,56 +453,60 @@ const Products = () => {
                 <button
                   onClick={() => handlePageChange(1)}
                   disabled={currentPage === 1}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="p-3 border border-gray-300 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm"
                 >
                   <ChevronsLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="p-3 border border-gray-300 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`px-4 py-2 border rounded-lg ${
-                        currentPage === pageNum
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                    // Show first, last, current, and neighbors
+                    if (
+                      pageNum === 1 ||
+                      pageNum === totalPages ||
+                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`w-10 h-10 flex items-center justify-center font-bold text-sm rounded-xl transition-all active:scale-90 ${
+                            currentPage === pageNum
+                              ? 'bg-slate-900 text-white shadow-lg border-slate-900 border'
+                              : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    } else if (
+                      (pageNum === 2 && currentPage > 3) ||
+                      (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return <span key={pageNum} className="px-1 text-gray-400 font-bold">...</span>;
+                    }
+                    return null;
+                  })}
+                </div>
                 
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="p-3 border border-gray-300 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handlePageChange(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="p-3 border border-gray-300 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm"
                 >
                   <ChevronsRight className="w-4 h-4" />
                 </button>

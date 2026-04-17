@@ -8,7 +8,9 @@ import productReducer from "../features/product/productSlice";
 import subCategoryReducer from "../features/subCategory/subCategorySlice";
 import sectionReducer from '../features/sections/sectionSlice'
 import contactReducer from "../features/contacts/contactSlice";
-import sectionProductReducer from '../features/sectionProducts/sectionProductSlice'
+import sectionProductReducer from '../features/sectionProducts/sectionProductSlice';
+import orderReducer from '../features/order/orderSlice'
+import promoCodeReducer from '../features/promoCode/promoCodeSlice'
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
@@ -35,7 +37,9 @@ export const store = configureStore({
     subCategory: subCategoryReducer,
     contacts: contactReducer,
     section : sectionReducer,
-    sectionProduct : sectionProductReducer
+    sectionProduct : sectionProductReducer,
+    promoCode: promoCodeReducer,
+    order: orderReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

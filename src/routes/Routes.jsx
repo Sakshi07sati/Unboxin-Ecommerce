@@ -23,6 +23,9 @@ import Section from "../pages/adminDashboard/sections/Section";
 import SectionManagement from "../pages/adminDashboard/sections/Section";
 import SectionProduct from "../pages/adminDashboard/sectionProduct/SectionProduct";
 import AddSectionProduct from "../pages/adminDashboard/sectionProduct/AddSectionProduct";
+import Order from '../pages/adminDashboard/orders/Order'
+import PromoCode from "../pages/adminDashboard/promocode/PromoCode";
+import AddPromoCode from "../pages/adminDashboard/promocode/AddPromoCode";
 
 const AllRoutes = () => {
   return (
@@ -46,6 +49,7 @@ const AllRoutes = () => {
         <Route index element={<Dashboard />} />
         <Route path="products" element={<Products />} />
         <Route path="users" element={<User />} />
+        <Route path="orders" element={<Order/>} />
         <Route path="contacts" element={<Contact />} />
         <Route
           path="products/add"
@@ -66,6 +70,11 @@ const AllRoutes = () => {
         <Route path="sections" element={<SectionManagement />} />
         <Route path="section/products/add" element={<AddSectionProduct />} />
         <Route path="section/products" element={<SectionProduct />} />
+          <Route path="/admin/promo-codes" element={<PromoCode />} />
+        <Route 
+          path="/admin/promo-codes/add" 
+          element={<AddPromoCode />} 
+        />
       </Route>
     </Routes>
   );

@@ -398,4 +398,68 @@ export const exportBanners = (banners, format = 'csv') => {
   }
 };
 
+/**
+ * Export Section Products data (Flattened)
+ */
+export const exportSectionProducts = (sections, productDetails, format = 'csv') => {
+  const columns = [
+    { key: 'section', label: 'Section' },
+    { key: 'name', label: 'Product Name' },
+    { key: 'price', label: 'Price' },
+    { key: 'category', label: 'Category' },
+    { key: 'productId', label: 'Product ID' }
+  ];
+
+  const transformedData = sections.flatMap(section => 
+    (section.products || []).map(p => {
+      const productId = typeof p === 'string' ? p : p._id || p;
+      const details = productDetails[productId];
+      return {
+        section: section.section || '',
+        name: details?.name || details?.title || 'Unknown',
+        price: details?.price || '—',
+        category: (typeof details?.category === 'object' ? details?.category?.category : details?.category) || '—',
+        productId: productId
+      };
+    })
+  );
+
+  if (format === 'csv') {
+    exportToCSV(transformedData, columns, 'section_products_report');
+  } else {
+    exportToPDF(transformedData, columns, 'Section Products Report', 'section_products_report');
+  }
+};
+
+/**
+ * Export Dashboard Statistics and Recent Orders
+ */
+export const exportDashboardSummary = (stats, recentOrders, format = 'csv') => {
+  // We'll export two separate reports or a combined one. 
+  // For simplicity and common use cases, we'll export the Recent Orders list as the primary report
+  // and include stats in the filename or as additional rows if CSV.
+  
+  const columns = [
+    { key: 'orderId', label: 'Order ID' },
+    { key: 'customer', label: 'Customer' },
+    { key: 'product', label: 'Product' },
+    { key: 'amount', label: 'Amount' },
+    { key: 'status', label: 'Status' },
+    { key: 'date', label: 'Date' }
+  ];
+
+  const transformedData = recentOrders.map(order => ({
+    ...order,
+    amount: order.amount.replace('₹', 'Rs')
+  }));
+
+  if (format === 'csv') {
+    exportToCSV(transformedData, columns, 'dashboard_recent_orders');
+  } else {
+    exportToPDF(transformedData, columns, 'Recent Orders Summary', 'dashboard_recent_orders');
+  }
+};
+
+
+
 

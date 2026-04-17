@@ -19,6 +19,9 @@ const productSlice = createSlice({
     status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
     loading: false, // Specific loading state for single product
     error: null,
+    totalProducts: 0,
+    totalPages: 1,
+    currentPage: 1,
     // NEW: Track if products have been loaded at least once
     hasLoaded: false,
     // NEW: Track retry attempts and last error time to prevent infinite retries
@@ -64,7 +67,10 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = action.payload;
+        state.products = action.payload.data || [];
+        state.totalProducts = action.payload.totalProducts || 0;
+        state.totalPages = action.payload.totalPages || 1;
+        state.currentPage = action.payload.currentPage || 1;
         state.hasLoaded = true; // NEW
       })
       .addCase(fetchProducts.rejected, (state, action) => {

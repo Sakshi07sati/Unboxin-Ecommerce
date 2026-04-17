@@ -3,15 +3,16 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 
 export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
-  async (_, { rejectWithValue }) => {
+  async (params = { page: 1, limit: 10 }, { rejectWithValue }) => {
    
     try {
+      const { page, limit } = params;
       const token = localStorage.getItem("adminToken");
-      const res = await API.get("/products", {
+      const res = await API.get(`/products?page=${page}&limit=${limit}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
-      return res.data.data;
+      return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Failed to fetch products");
     }

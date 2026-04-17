@@ -6,7 +6,23 @@ import {
   deleteSectionProduct,
 } from "../../../global_redux/features/sectionProducts/sectionProductThunks";
 import { fetchProductById } from "../../../global_redux/features/product/productThunks";
-import { Loader2, Eye, Package, Pencil, Trash2, AlertCircle, Search, Filter, X } from "lucide-react";
+import { 
+  Loader2, 
+  Eye, 
+  Package, 
+  Pencil, 
+  Trash2, 
+  AlertCircle, 
+  Search, 
+  Filter, 
+  X,
+  Download,
+  ChevronDown,
+  FileSpreadsheet,
+  FileText
+} from "lucide-react";
+import { exportSectionProducts } from "@/utils/exportUtils";
+import toast from "react-hot-toast";
 
 const SectionProduct = () => {
   const dispatch = useDispatch();
@@ -21,6 +37,7 @@ const SectionProduct = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSection, setSelectedSection] = useState("all");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
   // Edit Modal State
   const [editModal, setEditModal] = useState({
@@ -188,17 +205,7 @@ const SectionProduct = () => {
     return sections?.reduce((acc, section) => acc + (section.products?.length || 0), 0) || 0;
   }, [sections]);
 
-  // Loading State
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="bg-white p-8 rounded-2xl shadow-lg">
-          <Loader2 className="animate-spin text-blue-600 mb-4 mx-auto" size={48} />
-          <p className="text-gray-700 font-medium">Loading sections...</p>
-        </div>
-      </div>
-    );
-  }
+  // loading handled inline to prevent jumpy UI
 
   // Error State
   if (error) {
@@ -227,58 +234,106 @@ const SectionProduct = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+    <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        
+        {/* Header Section */}
+        <div className="p-6 border-b border-gray-200 bg-white rounded-t-lg shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-                Section Product Management
-              </h1>
-              <p className="text-gray-600 flex items-center gap-2">
-                <Package size={18} />
+              <h2 className="text-2xl font-bold text-gray-800">Section Product Management</h2>
+              <p className="text-gray-600 text-sm mt-1">
                 {totalProducts} Total Products across {sections.length} Sections
               </p>
             </div>
+            
+            <div className="flex flex-wrap items-center gap-3">
+              {(loadingProducts || isProcessing) && (
+                <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                  <Loader2 className="animate-spin text-blue-600" size={16} />
+                  <span className="text-blue-700 text-xs font-medium">
+                    {isProcessing ? "Processing..." : "Loading details..."}
+                  </span>
+                </div>
+              )}
 
-            {(loadingProducts || isProcessing) && (
-              <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
-                <Loader2 className="animate-spin text-blue-600" size={18} />
-                <span className="text-blue-700 text-sm font-medium">
-                  {isProcessing ? "Processing..." : "Loading details..."}
-                </span>
+              {/* Export Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-sm font-medium"
+                >
+                  <Download size={18} />
+                  Export
+                  <ChevronDown size={16} className={`transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {exportDropdownOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setExportDropdownOpen(false)}
+                    ></div>
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <button
+                        onClick={() => {
+                          exportSectionProducts(filteredSections, productDetails, 'csv');
+                          toast.success('CSV Exported successfully!');
+                          setExportDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-50 text-left"
+                      >
+                        <FileSpreadsheet size={16} className="text-green-600" />
+                        Download CSV
+                      </button>
+                      <button
+                        onClick={() => {
+                          exportSectionProducts(filteredSections, productDetails, 'csv');
+                          toast.success('Excel Exported successfully!');
+                          setExportDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-50 text-left"
+                      >
+                        <FileSpreadsheet size={16} className="text-blue-600" />
+                        Download Excel
+                      </button>
+                      <button
+                        onClick={() => {
+                          exportSectionProducts(filteredSections, productDetails, 'pdf');
+                          toast.success('PDF Generated successfully!');
+                          setExportDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium text-left"
+                      >
+                        <FileText size={16} className="text-red-500" />
+                        Download PDF
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
-          {/* Search and Filter Bar */}
-          <div className="mt-6 flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search Bar */}
+            <div className="md:col-span-3 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Search products by name or category..."
+                placeholder="Search products in sections..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
               />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X size={20} />
-                </button>
-              )}
             </div>
-
-            <div className="relative min-w-[200px]">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            {/* Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <select
                 value={selectedSection}
                 onChange={(e) => setSelectedSection(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm appearance-none cursor-pointer"
               >
                 <option value="all">All Sections</option>
                 {sections
@@ -289,9 +344,18 @@ const SectionProduct = () => {
                     </option>
                   ))}
               </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
             </div>
           </div>
         </div>
+
+        {/* Loading Indicator */}
+        {loading && sections.length === 0 && (
+          <div className="bg-white p-8 rounded-b-lg shadow-sm border border-gray-100 flex items-center justify-center gap-3">
+            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-gray-600 font-medium">Loading sections...</p>
+          </div>
+        )}
 
         {/* Sections Grid */}
         <div className="space-y-6">
@@ -304,17 +368,15 @@ const SectionProduct = () => {
                 console.log("Rendering section:", filteredSections)
               }
               {/* Section Header */}
-              <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-5">
+              <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h2 className="text-xl font-bold text-white capitalize tracking-wide">
+                    <h2 className="text-lg font-bold text-gray-800 capitalize">
                       {section.section}
                     </h2>
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium">
-                        {section.products?.length || 0} Products
-                      </span>
-                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {section.products?.length || 0} Products classified in this collection
+                    </p>
                   </div>
                 </div>
               </div>
@@ -323,26 +385,26 @@ const SectionProduct = () => {
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         #
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Image
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Product Name
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Price
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Category
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Created
                       </th>
-                      <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
