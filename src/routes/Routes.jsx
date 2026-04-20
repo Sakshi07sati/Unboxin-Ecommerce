@@ -28,6 +28,7 @@ import PromoCode from "../pages/adminDashboard/promocode/PromoCode";
 import AddPromoCode from "../pages/adminDashboard/promocode/AddPromoCode";
 import CartPage from "../pages/cartPage/CartPage";
 import CheckoutPage from "../pages/checkout/CheckoutPage";
+import NotFound from "../pages/notFound/NotFound";
 
 const AllRoutes = () => {
   return (
@@ -81,6 +82,9 @@ const AllRoutes = () => {
           element={<AddPromoCode />} 
         />
       </Route>
+
+      {/* Catch-all 404 Route */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

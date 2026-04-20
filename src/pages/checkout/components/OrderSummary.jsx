@@ -46,7 +46,7 @@ const OrderSummary = ({
             </p>
           </div>
         </div>
-        
+
         {isBuyNow && (
           <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full">
             Quick Buy
@@ -104,24 +104,24 @@ const OrderSummary = ({
             {cartItems.map((item, index) => {
               // For customized items, use price directly (already includes base + customization)
               // For regular items, use originalPrice or price
-              const itemPrice = item.isCustomized 
+              const itemPrice = item.isCustomized
                 ? item.price  // Customized: price already includes base + customization cost
                 : (item.originalPrice || item.price); // Regular: use originalPrice if available, else price
-              
+
               const discountPercent = item.discount || 0;
               const discountedPrice = itemPrice - (itemPrice * discountPercent) / 100;
               const quantity = item.quantity || 1;
-              
+
               // Use inline SVG placeholder instead of external URL
               const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='12' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
-              
+
               return (
-                <div 
-                  key={item.id || `item-${index}`} 
+                <div
+                  key={item.id || `item-${index}`}
                   className="flex gap-3 pb-3 border-b border-gray-100 last:border-0"
                 >
                   <img
-                    src={item.image?.[0] || item.image || placeholderSvg}
+                    src={(Array.isArray(item.image) ? item.image[0] : item.image) || placeholderSvg}
                     alt={item.name}
                     onError={(e) => {
                       // Prevent infinite loop - only set once if not already set
@@ -144,7 +144,7 @@ const OrderSummary = ({
                       <span className="font-bold text-sm text-gray-900">
                         ₹{(discountedPrice * quantity).toFixed(0)}
                       </span>
-                      {item.size && (
+                      {item.size && item.size !== "OS" && item.size !== "null" && (
                         <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
                           Size: {item.size}
                         </span>
@@ -273,7 +273,7 @@ const OrderSummary = ({
       {/* Price Breakdown */}
       <div className="space-y-3 bg-gray-50 rounded-xl p-4 border border-gray-200">
         <h4 className="font-bold text-gray-900 text-sm mb-2">Price Breakdown</h4>
-        
+
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">Subtotal ({cartItems.length} {cartItems.length === 1 ? 'item' : 'items'})</span>
           <span className="font-medium text-gray-900">₹{subtotal.toFixed(0)}</span>

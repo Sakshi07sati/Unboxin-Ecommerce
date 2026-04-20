@@ -19,7 +19,7 @@ import {
   selectCartItems,
   selectBuyNowItem,
   clearBuyNowItem,
-} from "@/global_redux/features/cart/cartSlice";
+} from "../../global_redux/features/cart/cartSlice";
 import {
   applyPromoCode,
   removePromoCode,
@@ -224,22 +224,23 @@ const CheckoutPage = () => {
 
       for (const product of sortedProductsByPrice) {
         try {
+          console.log(product)
           const result = await dispatch(
             applyPromoCode({
               code: promoCode.trim(),
               productId: product.productId,
-              categoryId: product.categoryId,
+              subCategoryId: product.categoryId,
               totalAmount: subtotal,
               productName: product.item.name,
             }),
           ).unwrap();
-
-          setPromoSuccess({
-            message: result.message || "Promo code applied successfully!",
-            productName: product.item.name,
-            discount: result.discount,
-          });
-          setPromoCode("");
+          console.log(result)
+          // setPromoSuccess({
+          //   message: result.message || "Promo code applied successfully!",
+          //   productName: product.item.name,
+          //   discount: result.discount,
+          // });
+          // setPromoCode("");
           applied = true;
           break;
         } catch (err) {

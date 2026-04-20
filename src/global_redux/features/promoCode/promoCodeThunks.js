@@ -67,7 +67,7 @@ export const updatePromoCode = createAsyncThunk(
         backendPayload.applicableProduct = promoData.applicableProduct;
       }
 
-      console.log("Backend Payload:", backendPayload);
+      // console.log("Backend Payload:", backendPayload);
 
       // Let the API interceptor handle token injection
       const response = await API.put(`/promos/${id}`, backendPayload, {
@@ -124,37 +124,39 @@ export const deletePromoCode = createAsyncThunk(
 // ✅ User - Apply Promo Code
 export const applyPromoCode = createAsyncThunk(
   "promoCode/applyPromoCode",
-  async ({ code, productId, categoryId, totalAmount, productName }, { rejectWithValue }) => {
+  async ({ code, productId, subCategoryId, totalAmount, productName }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      console.log("Applying promo code:", { code, productId, categoryId, totalAmount });
-      
+    const userEmail="govind@gmail.com"
+      // const token = localStorage.getItem("token");
+      console.log("Applying promo code:", { code, productId, subCategoryId,userEmail, totalAmount ,productName});
+        
       const payload = { 
         code, 
-        totalAmount 
+        totalAmount ,
+        userEmail
       };
       
       if (productId) {
         payload.productId = productId;
       }
       
-      if (categoryId) {
-        payload.categoryId = categoryId;
+      if (subCategoryId) {
+        payload.subCategoryId = subCategoryId;
       }
       
       const response = await API.post(
-        "/promo-code/apply",
+        "/promos/apply",
         payload,
-        {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          },
-        }
+        // {
+        //   headers: { 
+        //     Authorization: `Bearer ${token}`,
+        //     "Content-Type": "application/json"
+        //   },
+        // }
       );
 
       console.log("Apply Response:", response.data);
-      
+        
       return response.data;
     } catch (error) {
       console.error("Apply Error:", error.response?.data || error.message);

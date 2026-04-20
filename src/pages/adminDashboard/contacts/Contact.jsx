@@ -215,13 +215,13 @@ const AdminContacts = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Total Contacts</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
             </div>
-            <MessageSquare className="w-10 h-10 text-blue-500" />
+            <MessageSquare className="w-7 h-7 text-blue-500" />
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
@@ -230,7 +230,7 @@ const AdminContacts = () => {
               <p className="text-gray-600 text-sm font-medium">New</p>
               <p className="text-2xl font-bold text-blue-600 mt-1">{stats.new}</p>
             </div>
-            <Clock className="w-10 h-10 text-blue-500" />
+            <Clock className="w-7 h-7 text-blue-500" />
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
@@ -239,7 +239,7 @@ const AdminContacts = () => {
               <p className="text-gray-600 text-sm font-medium">Read</p>
               <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.read}</p>
             </div>
-            <Eye className="w-10 h-10 text-yellow-500" />
+            <Eye className="w-7 h-7 text-yellow-500" />
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
@@ -248,7 +248,7 @@ const AdminContacts = () => {
               <p className="text-gray-600 text-sm font-medium">Replied</p>
               <p className="text-2xl font-bold text-purple-600 mt-1">{stats.replied}</p>
             </div>
-            <Send className="w-10 h-10 text-purple-500" />
+            <Send className="w-7 h-7 text-purple-500" />
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
@@ -257,7 +257,7 @@ const AdminContacts = () => {
               <p className="text-gray-600 text-sm font-medium">Resolved</p>
               <p className="text-2xl font-bold text-green-600 mt-1">{stats.resolved}</p>
             </div>
-            <CheckCircle className="w-10 h-10 text-green-500" />
+            <CheckCircle className="w-7 h-7 text-green-500" />
           </div>
         </div>
       </div>
