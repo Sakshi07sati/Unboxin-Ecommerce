@@ -63,7 +63,7 @@
 // //         <ChevronRight size={24} className="text-gray-600" />
 // //       </button>
 // //     </section>
-    
+
 // //   );
 // // };
 
@@ -130,8 +130,8 @@
 //       {/* Custom Styling for Swiper Arrows */}
 //       <style jsx global>{`
 //         .swiper-button-next, .swiper-button-prev {
-//           color: #e91e63 !important; 
-       
+//           color: #e91e63 !important;
+
 //           width: 20px !important;
 //           height: 20px !important;
 //           border-radius: 50%;
@@ -153,15 +153,15 @@
 // import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // const categories = [
-//   { name: "Men", img: "https://i.pravatar.cc/100?img=1" },
-//   { name: "Women", img: "https://i.pravatar.cc/100?img=2" },
-//   { name: "Beauty", img: "https://i.pravatar.cc/100?img=3" },
-//   { name: "Electronics", img: "https://i.pravatar.cc/100?img=4" },
-//   { name: "Mobiles", img: "https://i.pravatar.cc/100?img=5" },
-//   { name: "Skincare", img: "https://i.pravatar.cc/100?img=6" },
-//   { name: "Haircare", img: "https://i.pravatar.cc/100?img=7" },
-//   { name: "Sports", img: "https://i.pravatar.cc/100?img=8" },
-  
+//   { name: "Men", img: "http://i.pravatar.cc/100?img=1" },
+//   { name: "Women", img: "http://i.pravatar.cc/100?img=2" },
+//   { name: "Beauty", img: "http://i.pravatar.cc/100?img=3" },
+//   { name: "Electronics", img: "http://i.pravatar.cc/100?img=4" },
+//   { name: "Mobiles", img: "http://i.pravatar.cc/100?img=5" },
+//   { name: "Skincare", img: "http://i.pravatar.cc/100?img=6" },
+//   { name: "Haircare", img: "http://i.pravatar.cc/100?img=7" },
+//   { name: "Sports", img: "http://i.pravatar.cc/100?img=8" },
+
 // ];
 
 // export default function ProductCategory() {
@@ -228,19 +228,18 @@
 //   );
 // }
 
-
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const categories = [
-  { name: "Men", img: "https://i.pravatar.cc/100?img=1" },
-  { name: "Women", img: "https://i.pravatar.cc/100?img=2" },
-  { name: "Beauty", img: "https://i.pravatar.cc/100?img=3" },
-  { name: "Electronics", img: "https://i.pravatar.cc/100?img=4" },
-  { name: "Mobiles", img: "https://i.pravatar.cc/100?img=5" },
-  { name: "Skincare", img: "https://i.pravatar.cc/100?img=6" },
-  { name: "Haircare", img: "https://i.pravatar.cc/100?img=7" },
-  { name: "Sports", img: "https://i.pravatar.cc/100?img=8" },
+  { name: "Men",         img: "https://ui-avatars.com/api/?name=Men&background=fce7f3&color=be185d&size=128&bold=true&font-size=0.4" },
+  { name: "Women",       img: "https://ui-avatars.com/api/?name=Women&background=fdf2f8&color=9d174d&size=128&bold=true&font-size=0.3" },
+  { name: "Beauty",      img: "https://ui-avatars.com/api/?name=Beauty&background=fef3c7&color=92400e&size=128&bold=true&font-size=0.3" },
+  { name: "Electronics", img: "https://ui-avatars.com/api/?name=Elec&background=dbeafe&color=1e40af&size=128&bold=true&font-size=0.4" },
+  { name: "Mobiles",     img: "https://ui-avatars.com/api/?name=Mobile&background=dcfce7&color=166534&size=128&bold=true&font-size=0.35" },
+  { name: "Skincare",    img: "https://ui-avatars.com/api/?name=Skin&background=fae8ff&color=86198f&size=128&bold=true&font-size=0.4" },
+  { name: "Haircare",    img: "https://ui-avatars.com/api/?name=Hair&background=ffe4e6&color=be123c&size=128&bold=true&font-size=0.4" },
+  { name: "Sports",      img: "https://ui-avatars.com/api/?name=Sport&background=ecfdf5&color=065f46&size=128&bold=true&font-size=0.35" },
 ];
 
 export default function ProductCategory() {
@@ -275,8 +274,8 @@ export default function ProductCategory() {
         className="flex gap-10 overflow-x-auto scrollbar-hide px-12 pb-4"
       >
         {categories.map((cat, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className="flex flex-col items-center flex-shrink-0 cursor-pointer group"
           >
             {/* Circle Image Container */}
@@ -284,7 +283,6 @@ export default function ProductCategory() {
               <img
                 src={cat.img}
                 alt={cat.name}
-                crossOrigin="anonymous"
                 className="w-full h-full object-cover"
               />
             </div>

@@ -12,39 +12,16 @@ import {
   Edit,
   Package,
 } from "lucide-react";
-// import { useSelector,  } from "react-redux";
-// // import { selectCartItemsCount } from "@/global_redux/features/cart/cartSlice";
-// import { Link, useNavigate } from "react-router-dom";
-// // import logoblack from "@/assets/logo-black.png";
-// // import { logout } from "@/global_redux/features/auth/authSlice";
-
-// const Navbar = () => {
-//   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-//   const [open, setOpen] = useState(false);
-//   // const cartItemsCount = useSelector(selectCartItemsCount);
-//   const menuRef = useRef(null);
-//   // const { user } = useSelector((state) => state.auth || {});
-//   // const dispatch = useDispatch();
-//   const navigate = useNavigate();
-
-//   // Close menu when clicking outside
-//   useEffect(() => {
-//     const handleClickOutside = (event) => {
-//       if (menuRef.current && !menuRef.current.contains(event.target)) {
-//         setOpen(false);
-//       }
-//     };
-//     document.addEventListener("mousedown", handleClickOutside);
-//     return () => document.removeEventListener("mousedown", handleClickOutside);
-//   }, []);
-import React from "react";
-import {useState} from "react";
+import { useSelector } from "react-redux";
+import { selectCartItemsCount } from "../../global_redux/features/cart/cartSlice";
+import React, { useState } from "react";
 import AuthModal from "../User/AuthModal";
-
-
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
-  const [open,setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const cartItemsCount = useSelector(selectCartItemsCount);
+
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-50">
       <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
@@ -84,10 +61,12 @@ const Navbar = () => {
       <AuthModal isOpen={open} onClose={() => setOpen(false)}  className="cursor-pointer hover:text-primary" />
           <Heart size={22} className="cursor-pointer hover:text-primary" />
           <div className="relative cursor-pointer hover:text-primary">
+             <Link to="/cart">
              <ShoppingBag size={22} />
             <span className="absolute -top-1 -right-2 bg-primary text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-              0
+               {cartItemsCount}
             </span>
+          </Link>
           </div>
           
         </div>

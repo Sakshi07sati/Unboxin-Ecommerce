@@ -91,7 +91,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addToCart } from "../../global_redux/features/cart/cartSlice";
 import { toggleWishlist } from "../../global_redux/features/wishlist/wishlistSlice";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function ProductCard({ product }) {
   const dispatch = useDispatch();
@@ -180,10 +181,24 @@ export default function ProductCard({ product }) {
       <button
         onClick={(e) => {
           e.stopPropagation();
-          dispatch(addToCart(product));
+          const firstSize = product.sizes?.[0];
+          dispatch(
+            addToCart({
+              productId: product._id,
+              name: product.name,
+              price: product.price,
+              originalPrice: product.originalPrice,
+              image: product.img?.[0],
+              size: firstSize?.size || "OS",
+              maxStock: firstSize?.stock || 10,
+              sizes: product.sizes || [],
+            })
+          );
+          toast.success(`${product.name} added to cart!`);
         }}
-        className="w-full mt-3 bg-pink-600 text-white py-1.5 rounded text-sm"
+        className="w-full mt-3 bg-pink-600 hover:bg-pink-700 active:scale-95 transition-all text-white py-2 rounded text-sm font-semibold flex items-center justify-center gap-2"
       >
+        <ShoppingCart size={15} />
         Add to Cart
       </button>
     </div>

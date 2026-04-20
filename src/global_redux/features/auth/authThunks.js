@@ -197,21 +197,21 @@ export const adminLogin = createAsyncThunk(
   }
 );
 
-// export const fetchUserProfile = createAsyncThunk(
-//   "auth/fetchUserProfile",
-//   async (userId, { rejectWithValue }) => {
-//     try {
-//       const token = localStorage.getItem("token");
-//       const res = await API.get(`/auth/${userId}`, {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
-//       return res.data.user; // should return { success: true, user: {...} }
+export const fetchUserProfile = createAsyncThunk(
+  "auth/fetchUserProfile",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await API.get(`/auth/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data.user; // should return { success: true, user: {...} }
 
-//     } catch (error) {
-//       return rejectWithValue(error.response?.data?.message || "Failed to fetch user profile");
-//     }
-//   }
-// );
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch user profile");
+    }
+  }
+);
 
 // ✅ Update User Profile
 // export const updateUserProfile = createAsyncThunk(
