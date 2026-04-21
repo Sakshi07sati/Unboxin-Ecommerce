@@ -19,15 +19,17 @@ import React, { useState, useRef, useEffect } from "react";
 import AuthModal from "../User/AuthModal";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../../global_redux/features/auth/authSlice";
+import { fetchCategories } from "../../global_redux/features/category/categoryThunks";
+import { selectCategories } from "../../global_redux/features/category/categorySlice";
 
 const Navbar = () => {
   const [openAuth, setOpenAuth] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
+  const categories = useSelector(selectCategories);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+ 
   const cartItemsCount = useSelector(selectCartItemsCount);
   const { user } = useSelector((state) => state.auth);
 
@@ -47,6 +49,9 @@ const Navbar = () => {
     setIsProfileOpen(false);
     navigate("/");
   };
+   useEffect(() => {
+      dispatch(fetchCategories());
+    }, [dispatch]);
 
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-50 shadow-sm">
@@ -62,10 +67,18 @@ const Navbar = () => {
           {/* Navigation Links */}
           <div className="hidden lg:flex gap-6 font-semibold text-sm text-textPrimary uppercase tracking-wide">
              <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-            <a href="#" className="hover:text-primary transition-colors">Fashion</a>
+             {categories.map((category) => (
+               <Link to="/" key={category._id} className="hover:text-primary transition-colors">
+                 {category.category}
+               </Link>
+             ))}
+            {/* <a href="#" className="hover:text-primary transition-colors">Fashion</a>
             <a href="#" className="hover:text-primary transition-colors">Beauty</a>
-            <a href="#" className="hover:text-primary transition-colors">Electronics</a>
-            <a href="#" className="hover:text-primary transition-colors">Mobile</a>
+            <a href="#" className="hover:text-primary transition-colors">Electronics</a> */}
+            {/* <a href="#" className="hover:text-primary transition-colors">Mobile</a> */}
+            <Link to="/admin/login" className="hover:text-primary transition-colors font-bold">
+              Admin
+            </Link>
           </div>
         </div>
 
