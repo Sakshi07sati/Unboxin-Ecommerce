@@ -121,9 +121,11 @@ import { createSlice } from "@reduxjs/toolkit";
 import { 
   adminLogin, 
   fetchAllUsers,
-   registerUser,
+  registerUser,
   verifyOtp,
-  loginUser
+  loginUser,
+  fetchUserProfile,
+  updateUserProfile
 } from "./authThunks";
 
 // LocalStorage
@@ -179,12 +181,16 @@ const authSlice = createSlice({
       state.loading = false;
       state.user = user;
       state.token = token;
+      state.userId = user?._id || user?.id || null;
       state.role = user?.role || null;
       state.permissions = user?.permissions || {};
       state.status = "succeeded";
 
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("token", token);
+      if (state.userId) {
+        localStorage.setItem("userId", state.userId);
+      }
     },
 
     authFail: (state, action) => {
@@ -258,13 +264,20 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.role = action.payload.user?.role || null;
-        state.permissions = action.payload.user?.permissions || {};
+        const user = action.payload.user;
+        const token = action.payload.token;
 
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-        localStorage.setItem("token", action.payload.token);
+        state.user = user;
+        state.token = token;
+        state.userId = user?._id || user?.id || null;
+        state.role = user?.role || null;
+        state.permissions = user?.permissions || {};
+
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("token", token);
+        if (state.userId) {
+          localStorage.setItem("userId", state.userId);
+        }
 
         state.step = "login"; // reset modal
       })
@@ -302,6 +315,38 @@ const authSlice = createSlice({
         localStorage.setItem("adminToken", action.payload.token);
       })
       .addCase(adminLogin.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
+
+      // ✅ FETCH USER PROFILE
+      .addCase(fetchUserProfile.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload;
+        state.userId = action.payload?._id || action.payload?.id || state.userId;
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      })
+      .addCase(fetchUserProfile.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
+
+      // ✅ UPDATE USER PROFILE
+      .addCase(updateUserProfile.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload;
+        state.userId = action.payload?._id || action.payload?.id || state.userId;
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
       });

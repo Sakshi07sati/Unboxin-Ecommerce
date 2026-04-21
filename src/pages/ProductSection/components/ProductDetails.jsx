@@ -105,7 +105,7 @@ const ProductDetails = () => {
               <img
                 src={img}
                 alt={`Product View ${i}`}
-                className="w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-[300px] object-cover transform transition-transform duration-500 group-hover:scale-105"
               />
             </div>
           ))}

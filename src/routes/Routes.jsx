@@ -29,6 +29,7 @@ import AddPromoCode from "../pages/adminDashboard/promocode/AddPromoCode";
 import CartPage from "../pages/cartPage/CartPage";
 import CheckoutPage from "../pages/checkout/CheckoutPage";
 import NotFound from "../pages/notFound/NotFound";
+import Profile from "../pages/profile/Profile";
 
 const AllRoutes = () => {
   return (
@@ -40,7 +41,7 @@ const AllRoutes = () => {
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
-
+      <Route path="/profile" element={<Profile />} />
       <Route path="/admin/login" element={<AdminLogin />} />
 
       {/* Protected Admin Routes */}

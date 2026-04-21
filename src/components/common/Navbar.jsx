@@ -11,64 +11,174 @@ import {
   LogOut,
   Edit,
   Package,
+  ChevronDown,
 } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectCartItemsCount } from "../../global_redux/features/cart/cartSlice";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import AuthModal from "../User/AuthModal";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { logout } from "../../global_redux/features/auth/authSlice";
 
 const Navbar = () => {
-  const [open, setOpen] = useState(false);
+  const [openAuth, setOpenAuth] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
   const cartItemsCount = useSelector(selectCartItemsCount);
+  const { user } = useSelector((state) => state.auth);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setIsProfileOpen(false);
+    navigate("/");
+  };
 
   return (
-    <nav className="bg-white border-b border-border sticky top-0 z-50">
+    <nav className="bg-white border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-8">
-          <h1 className="text-primary font-black text-4xl tracking-tighter">
-            UN<span className="font-normal text-3xl not-italic text-primary">BOX</span>
-          </h1>
+          <Link to="/">
+            <h1 className="text-primary font-black text-4xl tracking-tighter cursor-pointer">
+              UN<span className="font-normal text-3xl not-italic text-primary">BOX</span>
+            </h1>
+          </Link>
           
           {/* Navigation Links */}
           <div className="hidden lg:flex gap-6 font-semibold text-sm text-textPrimary uppercase tracking-wide">
-             <a href="#" className="hover:text-primary">Home</a>
-            <a href="#" className="hover:text-primary">Fashion</a>
-            <a href="#" className="hover:text-primary">Beauty</a>
-            <a href="#" className="hover:text-primary">Electronics</a>
-            <a href="#" className="hover:text-primary">Mobile</a>
+             <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+            <a href="#" className="hover:text-primary transition-colors">Fashion</a>
+            <a href="#" className="hover:text-primary transition-colors">Beauty</a>
+            <a href="#" className="hover:text-primary transition-colors">Electronics</a>
+            <a href="#" className="hover:text-primary transition-colors">Mobile</a>
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="flex-1 max-w-md mx-8 relative">
+        <div className="flex-1 max-w-md mx-8 relative hidden md:block">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
           <input
             type="text"
-            className="w-full bg-gray-100 border-none rounded py-2 pl-10 pr-10 text-sm focus:ring-1 focus:ring-primary"
+            className="w-full bg-gray-100 border-none rounded py-2 pl-10 pr-10 text-sm focus:ring-1 focus:ring-primary transition-all"
             placeholder="Search for products, styles, brands..."
           />
-         
         </div>
 
         {/* Icons */}
         <div className="flex items-center gap-6 text-gray-700">
-         
-          <button onClick={() => setOpen(true)}> <User size={22}/> </button>
-      <AuthModal isOpen={open} onClose={() => setOpen(false)}  className="cursor-pointer hover:text-primary" />
-          <Heart size={22} className="cursor-pointer hover:text-primary" />
-          <div className="relative cursor-pointer hover:text-primary">
-             <Link to="/cart">
-             <ShoppingBag size={22} />
-            <span className="absolute -top-1 -right-2 bg-primary text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-               {cartItemsCount}
-            </span>
+          {/* User Profile / Login */}
+          <div className="relative" ref={dropdownRef}>
+            {user ? (
+              <div className="flex items-center gap-1 cursor-pointer group" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary transition-all duration-300">
+                  <User size={18} className="text-primary group-hover:text-white" />
+                </div>
+                <ChevronDown size={14} className={`text-gray-400 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
+              </div>
+            ) : (
+              <button 
+                onClick={() => setOpenAuth(true)}
+                className="flex items-center gap-2 hover:text-primary transition-colors"
+                title="Login / Signup"
+              >
+                <User size={22}/>
+              </button>
+            )}
+
+            {/* Profile Dropdown Menu */}
+            {user && isProfileOpen && (
+              <div className="absolute right-0 mt-3 w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="bg-primary/5 p-4 border-b border-gray-100">
+                  <p className="font-bold text-gray-900 truncate">
+                    {user?.username || user?.name || "User"}
+                  </p>
+                  <p className="text-xs text-textSecondary truncate">
+                    {user?.email || "No email provided"}
+                  </p>
+                </div>
+                
+                <ul className="py-2">
+                  <li>
+                    <Link 
+                      to="/profile" 
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <User size={16} />
+                      My Profile
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/orders" 
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <Package size={16} />
+                      My Orders
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/wishlist" 
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <Heart size={16} />
+                      Wishlist
+                    </Link>
+                  </li>
+                  <li className="border-t border-gray-100 mt-1">
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut size={16} />
+                      Logout
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <AuthModal isOpen={openAuth} onClose={() => setOpenAuth(false)} />
+          
+          <Link to="/wishlist" className="hover:text-primary transition-colors relative hidden sm:block">
+            <Heart size={22} />
           </Link>
+
+          <div className="relative">
+             <Link to="/cart" className="flex items-center hover:text-primary transition-colors">
+              <ShoppingBag size={22} />
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-2 bg-primary text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold animate-in zoom-in">
+                  {cartItemsCount}
+                </span>
+              )}
+            </Link>
           </div>
           
+          <button className="lg:hidden hover:text-primary transition-colors">
+            <Menu size={22} />
+          </button>
         </div>
       </div>
     </nav>
@@ -76,186 +186,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
-//   const handleLogout = () => {
-//     // dispatch(logout()); // ✅ Now dispatch is defined
-//     navigate("/");
-//     window.location.reload();
-//   };
-
-//   const handleUpdatePassword = () => {
-//     navigate("/update-password");
-//   };
-
-//   const navLinks = [
-//     { name: "Home", href: "/" },
-//     { name: "About", href: "/about" },
-//     { name: "Shop", href: "/shop" },
-//     { name: "Contact", href: "/contact" },
-//     { name: "Admin", href: "/admin" },
-//   ];
-
-//   return (
-//     <nav className="bg-white shadow-sm sticky top-0 z-50">
-//       {/* Main Navbar */}
-//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//         <div className="flex items-center justify-between h-20">
-//           {/* Mobile Menu Button */}
-//           <div className="flex items-center space-x-2">
-//             <button
-//               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-//               className="lg:hidden p-2 rounded-md hover:bg-gray-100"
-//             >
-//               {isMobileMenuOpen ? (
-//                 <X className="h-6 w-6" />
-//               ) : (
-//                 <Menu className="h-6 w-6" />
-//               )}
-//             </button>
-
-//             {/* Logo */}
-//             <div className="flex-shrink-0">
-//               <Link to="/">
-//                 {/* <img
-//                   className="h-12 w-auto"
-//                   src={logoblack}
-//                   alt="Teezines Logo"
-//                 /> */}
-//               </Link>
-//             </div>
-//           </div>
-
-//           {/* Desktop Navigation Links */}
-//           <div className="hidden lg:flex space-x-8">
-//             {navLinks.map((link) => (
-//               <Link
-//                 key={link.name}
-//                 to={link.href}
-//                 className="text-gray-700 text-xl font-mouse hover:text-black font-medium transition-colors duration-200"
-//               >
-//                 {link.name}
-//               </Link>
-//             ))}
-//           </div>
-
-//           {/* Right Icons */}
-//           <div className="flex items-center md:space-x-4">
-//             <div className="hidden relative lg:inline-block">
-//               <div className="absolute top-[6px] left-[6px] w-full h-full bg-black rounded-full"></div>
-               
-//             </div>
-
-//             {/* {!user && (
-//               <div className="flex items-center space-x-2">
-//                 <Link
-//                   to="/login"
-//                   className="text-gray-700 border border-gray-500 py-1 px-1 md:py-2 md:px-3 rounded-sm md:rounded-lg hover:text-black font-medium transition-colors duration-200"
-//                 >
-//                   Login
-//                 </Link>
-//                 <Link
-//                   to="/sign-up"
-//                   className="text-gray-700 border border-gray-500 py-1 px-1 md:py-2 md:px-3 rounded-sm md:rounded-lg hover:text-black font-medium transition-colors duration-200"
-//                 >
-//                   Sign Up
-//                 </Link>
-//               </div>
-//             )} */}
-
-//             {/* {user && (
-//               <div className="relative" ref={menuRef}>
-//                 <div
-//                   onClick={() => setOpen(!open)}
-//                   className="p-2 border border-black hover:bg-gray-100 rounded-lg transition-colors duration-200 cursor-pointer"
-//                 >
-//                   <User className="h-5 w-5 text-gray-700" />
-//                 </div>
-
-//                 {open && (
-//                   <div className="absolute right-1/2 transform translate-x-1/2 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
-//                     <div className="p-3 border-b">
-//                       <p className="font-semibold text-gray-800">
-//                         {user?.username || "Guest User"}
-//                       </p>
-//                       <p className="text-sm text-gray-500">
-//                         {user?.email || "guest@example.com"}
-//                       </p>
-//                     </div>
-//                     <ul className="py-2">
-//                       <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-//                         onClick={() => { navigate("/profile");
-//                         setOpen(false);
-//                       }}
-//                       >
-//                         <User className="h-4 w-4 text-gray-600" />
-//                         Profile
-//                       </li>
-//                       <li
-//                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-//                         onClick={() => {
-//                           navigate("/orders");
-//                           setOpen(false);
-//                         }}
-//                       >
-//                         <Package className="h-4 w-4 text-gray-600" />
-//                         My Orders
-//                       </li>
-//                       <li
-//                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-//                         onClick={handleUpdatePassword}
-//                       >
-//                         <Edit className="h-4 w-4 text-gray-600" />
-//                         Update Password
-//                       </li>
-//                       <li
-//                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
-//                         onClick={handleLogout}
-//                       >
-//                         <LogOut className="h-4 w-4 text-gray-600" />
-//                         Logout
-//                       </li>
-//                     </ul>
-//                   </div>
-//                 )}
-//               </div>
-//             )} */}
-
-//             <Link to="/cart">
-//               <button className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 relative">
-//                 <ShoppingCart className="h-5 w-5 text-gray-700" />
-//                 <span className="absolute top-0 right-0 bg-black text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-//                   {/* {cartItemsCount} */}
-//                 </span>
-//               </button>
-//             </Link>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Mobile Menu */}
-//       {isMobileMenuOpen && (
-//         <div className="lg:hidden border-t">
-//           <div className="px-4 py-4 space-y-3">
-//             {navLinks.map((link) => (
-//               <Link
-//                 key={link.name}
-//                 to={link.href}
-//                 className="block text-gray-700 hover:text-black font-medium py-2"
-//                 onClick={() => setIsMobileMenuOpen(false)}
-//               >
-//                 {link.name}
-//               </Link>
-//             ))}
-
-//             <div className="relative inline-block">
-//               <div className="absolute top-[6px] left-[6px] w-full h-full bg-black rounded-full"></div>
-               
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </nav>
-//   );
-// };
-
-// export default Navbar;

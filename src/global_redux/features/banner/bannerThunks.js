@@ -68,8 +68,25 @@ export const updateBanner = createAsyncThunk(
       };
 
       const res = await API.put(`/banners/${id}`, formData, config);
-      // Return the updated banner from response or fallback to local version
-      return res.data.banner || res.data.data || { _id: id, ...Object.fromEntries(formData.entries()) };
+      
+      // We expect the backend to return the updated banner. 
+      // If it doesn't return the full object, we merge the successful updates locally.
+      const updatedData = res.data.banner || res.data.data;
+      
+      if (updatedData) {
+        return updatedData;
+      }
+
+      // Fallback: Reconstruct from formData if response is just success: true
+      const formDataObj = {};
+      formData.forEach((value, key) => {
+        // We only take text fields for the state update; image is typically handled by the server returning a URL
+        if (typeof value === 'string') {
+          formDataObj[key] = value;
+        }
+      });
+
+      return { _id: id, ...formDataObj };
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to update banner"

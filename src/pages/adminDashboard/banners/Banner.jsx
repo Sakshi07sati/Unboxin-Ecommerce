@@ -43,6 +43,8 @@ const BannerManagement = () => {
   const [currentBanner, setCurrentBanner] = useState(null);
   const [formData, setFormData] = useState({
     productId: "",
+    title: "",
+    heading:"",
     img: null,
   });
   const [preview, setPreview] = useState(null);
@@ -83,7 +85,7 @@ const BannerManagement = () => {
 
   const openAddModal = () => {
     setModalMode("add");
-    setFormData({ productId: "", img: null });
+    setFormData({ productId: "", img: null, title: "", heading: "" });
     setPreview(null);
     setCurrentBanner(null);
     setShowModal(true);
@@ -96,6 +98,9 @@ const BannerManagement = () => {
     setFormData({
       productId: banner.productId?._id || banner.productId || "",
       img: null,
+      title: banner.title || "",
+      heading: banner.heading || "",
+
     });
     setPreview(banner.img);
     setShowModal(true);
@@ -103,7 +108,7 @@ const BannerManagement = () => {
 
   const closeModal = () => {
     setShowModal(false);
-    setFormData({ productId: "", img: null });
+    setFormData({ productId: "", img: null, title: "", heading: "" });
     setPreview(null);
     setCurrentBanner(null);
   };
@@ -128,6 +133,8 @@ const BannerManagement = () => {
     e.preventDefault();
     const data = new FormData();
     data.append("productId", formData.productId.trim());
+    data.append("title", formData.title.trim());
+    data.append("heading", formData.heading.trim());  
     if (formData.img) data.append("img", formData.img);
 
     if (modalMode === "add") {
@@ -254,8 +261,9 @@ const BannerManagement = () => {
         {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col overflow-hidden">
+              {/* Modal Header - Fixed at top */}
+              <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-white shrink-0">
                 <h3 className="text-lg font-bold text-gray-900">
                   {modalMode === "add" ? "Create New Banner" : "Edit Banner"}
                 </h3>
@@ -264,60 +272,88 @@ const BannerManagement = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Linked Product ID</label>
-                  <input
-                    type="text"
-                    name="productId"
-                    value={formData.productId}
-                    onChange={handleChange}
-                    placeholder="Enter Product ID Reference"
-                    className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all font-bold"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Banner Image</label>
-                  <div className="flex flex-col gap-4">
-                    {preview ? (
-                      <div className="relative group rounded-lg overflow-hidden aspect-[16/7] border border-gray-100">
-                        <img src={preview} alt="preview" className="w-full h-full object-cover" />
-                        <label htmlFor="img-upload" className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                          <span className="bg-white text-gray-900 px-4 py-1.5 rounded-lg font-bold text-xs">Change Image</span>
-                        </label>
-                      </div>
-                    ) : (
-                      <label 
-                        htmlFor="img-upload"
-                        className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg p-10 bg-gray-50 cursor-pointer hover:bg-white hover:border-gray-300 transition-all group"
-                      >
-                        <Upload size={32} className="text-gray-300 group-hover:text-blue-500 mb-2 transition-colors" />
-                        <span className="text-sm font-bold text-gray-700">Click to upload banner</span>
-                        <span className="text-[10px] text-gray-400 mt-1 uppercase">Best ratio 16:9</span>
-                      </label>
-                    )}
-                    <input id="img-upload" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+              {/* Modal Content - Scrollable area */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Linked Product ID</label>
+                    <input
+                      type="text"
+                      name="productId"
+                      value={formData.productId}
+                      onChange={handleChange}
+                      placeholder="Enter Product ID Reference"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all "
+                    />
                   </div>
-                </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Heading</label>
+                    <input
+                      type="text"
+                      name="heading"
+                      value={formData.heading}
+                      onChange={handleChange}
+                      placeholder="Enter Main Heading"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all "
+                    />
+                  </div>
 
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 disabled:bg-blue-300 transition-all flex items-center justify-center gap-2"
-                  >
-                    {loading ? <Loader2 size={18} className="animate-spin" /> : (modalMode === "add" ? "Save Banner" : "Update Banner")}
-                  </button>
-                </div>
-              </form>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Title</label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      placeholder="Enter Sub Title"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all "
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Banner Image</label>
+                    <div className="flex flex-col gap-4">
+                      {preview ? (
+                        <div className="relative group rounded-lg overflow-hidden aspect-[16/7] border border-gray-100 bg-gray-50">
+                          <img src={preview} alt="preview" className="w-full h-full object-cover" />
+                          <label htmlFor="img-upload" className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                            <span className="bg-white text-gray-900 px-4 py-1.5 rounded-lg font-bold text-xs">Change Image</span>
+                          </label>
+                        </div>
+                      ) : (
+                        <label 
+                          htmlFor="img-upload"
+                          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg p-10 bg-gray-50 cursor-pointer hover:bg-white hover:border-gray-300 transition-all group"
+                        >
+                          <Upload size={32} className="text-gray-300 group-hover:text-blue-500 mb-2 transition-colors" />
+                          <span className="text-sm font-bold text-gray-700">Click to upload banner</span>
+                          <span className="text-[10px] text-gray-400 mt-1 uppercase text-center">Best ratio 16:9 or 21:9 for wide screens</span>
+                        </label>
+                      )}
+                      <input id="img-upload" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+                    </div>
+                  </div>
+
+                  {/* Modal Footer - Fixed at bottom within the scrollable form for simplicity or inside a separate div */}
+                  <div className="flex items-center gap-3 pt-6 border-t border-gray-100 sticky bottom-0 bg-white shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl text-sm font-bold hover:bg-blue-700 disabled:bg-blue-300 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100"
+                    >
+                      {loading ? <Loader2 size={18} className="animate-spin" /> : (modalMode === "add" ? "Save Banner" : "Update Banner")}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
