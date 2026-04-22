@@ -28,7 +28,7 @@ import { fetchContacts, updateContactStatus } from '@/global_redux/features/cont
 import { selectContacts, selectContactsLoading, selectContactsError } from '@/global_redux/features/contacts/contactSlice';
 import { exportContacts } from '@/utils/exportUtils';
 
-const AdminContacts = () => {
+const Contact = () => {
   const dispatch = useDispatch();
   const contacts = useSelector(selectContacts);
   const loading = useSelector(selectContactsLoading);
@@ -583,5 +583,5 @@ const AdminContacts = () => {
   );
 };
 
-export default AdminContacts;
+export default Contact;
 

@@ -4,21 +4,21 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
   async (params = { page: 1, limit: 10 }, { rejectWithValue }) => {
-   
     try {
       const { page, limit } = params;
       const token = localStorage.getItem("adminToken");
       const res = await API.get(`/products?page=${page}&limit=${limit}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       return res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to fetch products");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch products",
+      );
     }
-  }
+  },
 );
-
 
 export const addProduct = createAsyncThunk(
   "products/addProduct",
@@ -41,9 +41,11 @@ export const addProduct = createAsyncThunk(
       console.log("Add response:", res.data);
       return res.data.product || res.data.data || res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to add product");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to add product",
+      );
     }
-  }
+  },
 );
 
 // FIXED: Update a product - using API instance instead of axios
@@ -71,8 +73,8 @@ export const updateProduct = createAsyncThunk(
         },
       };
 
-      // For FormData, let axios set Content-Type automatically (with boundary)
-      // For JSON, explicitly set Content-Type
+      // For FormData, axios will automatically set Content-Type with boundary
+      // Just ensure we don't override it with "application/json"
       if (!isFormData) {
         config.headers["Content-Type"] = "application/json";
       }
@@ -82,8 +84,20 @@ export const updateProduct = createAsyncThunk(
       return res.data.product || res.data.data || res.data;
     } catch (err) {
       console.error("Update error:", err);
+      const validationErrors = err.response?.data?.errors;
+      const normalizedValidationMessage =
+        Array.isArray(validationErrors) && validationErrors.length > 0
+          ? validationErrors
+              .map((e) =>
+                typeof e === "string"
+                  ? e
+                  : e?.msg || e?.message || e?.path || JSON.stringify(e),
+              )
+              .join(", ")
+          : "";
 
       const errorMessage =
+        normalizedValidationMessage ||
         err.response?.data?.message ||
         err.response?.data?.error ||
         err.message ||
@@ -91,7 +105,7 @@ export const updateProduct = createAsyncThunk(
 
       return rejectWithValue(errorMessage);
     }
-  }
+  },
 );
 
 export const deleteProduct = createAsyncThunk(
@@ -103,16 +117,15 @@ export const deleteProduct = createAsyncThunk(
       const res = await API.delete(`/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(res)
+      console.log(res);
       return productId; // return the deleted product ID for updating Redux state
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || "Failed to delete product"
+        err.response?.data?.message || "Failed to delete product",
       );
     }
-  }
+  },
 );
-
 
 export const fetchPublicProducts = createAsyncThunk(
   "products/fetchPublicProducts",
@@ -120,11 +133,14 @@ export const fetchPublicProducts = createAsyncThunk(
     try {
       // NO TOKEN NEEDED - Public endpoint
       const res = await API.get("/products");
-      return res.data.products;
+      // Handle different possible response structures
+      return res.data.data || res.data.products || res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to fetch products");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch products",
+      );
     }
-  }
+  },
 );
 
 // ===== OPTIONAL: Add if you want category filtering from backend =====
@@ -135,9 +151,11 @@ export const fetchProductsByCategory = createAsyncThunk(
       const res = await API.get(`/product?category=${category}`);
       return res.data.products;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to fetch products");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch products",
+      );
     }
-  }
+  },
 );
 
 // ===== OPTIONAL: Add for single product page =====
@@ -145,22 +163,19 @@ export const fetchProductById = createAsyncThunk(
   "products/fetchProductById",
   async (id, { rejectWithValue }) => {
     try {
-      console.log('API call for product ID:', id); // Check this
+      console.log("API call for product ID:", id); // Check this
       const res = await API.get(`/products/${id}`);
-      console.log('API Response:', res.data);
-      
+      console.log("API Response:", res.data);
+
       return res.data.product || res.data.data || res.data;
     } catch (err) {
-      console.error('API Error:', err.response || err);
+      console.error("API Error:", err.response || err);
       return rejectWithValue(
-        err.response?.data?.message || 
-        err.message || 
-        "Failed to fetch product"
+        err.response?.data?.message || err.message || "Failed to fetch product",
       );
     }
-  }
+  },
 );
-
 
 // productThunks.js
 export const fetchProductsBySection = createAsyncThunk(
@@ -176,12 +191,11 @@ export const fetchProductsBySection = createAsyncThunk(
     } catch (err) {
       console.error("API Error:", err.response || err);
       return rejectWithValue(
-        err.response?.data?.message || "Failed to fetch products by section"
+        err.response?.data?.message || "Failed to fetch products by section",
       );
     }
-  }
+  },
 );
-
 
 // export const fetchProductsByCategory = createAsyncThunk(
 //   "products/fetchProductsByCategory",

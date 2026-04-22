@@ -344,7 +344,8 @@ const AddProduct = () => {
                 )}
                 {subCategories
                   .filter((sub) => {
-                    const catId = typeof sub.category === "object" ? sub.category?._id : sub.category;
+                    if (!sub.category) return false;
+                    const catId = typeof sub.category === "object" ? (sub.category?._id || sub.category?.id) : sub.category;
                     return catId === formData.category;
                   })
                   .map((sub) => (

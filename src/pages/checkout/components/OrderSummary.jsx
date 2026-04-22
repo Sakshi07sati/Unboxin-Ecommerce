@@ -19,6 +19,13 @@ const OrderSummary = ({
   setShowProducts,
   isBuyNow = false,
 }) => {
+  const hasDisplaySize = (size) =>
+    size !== null &&
+    size !== undefined &&
+    String(size).trim() !== "" &&
+    String(size).toLowerCase() !== "null" &&
+    String(size).toUpperCase() !== "OS";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -111,28 +118,25 @@ const OrderSummary = ({
               const discountPercent = item.discount || 0;
               const discountedPrice = itemPrice - (itemPrice * discountPercent) / 100;
               const quantity = item.quantity || 1;
-
-              // Use inline SVG placeholder instead of external URL
-              const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='12' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
+              const imageSrc = Array.isArray(item.image) ? item.image[0] : item.image;
+              const showImage = Boolean(imageSrc);
+              const showSize = hasDisplaySize(item.size);
 
               return (
                 <div
                   key={item.id || `item-${index}`}
                   className="flex gap-3 pb-3 border-b border-gray-100 last:border-0"
                 >
-                  <img
-                    src={(Array.isArray(item.image) ? item.image[0] : item.image) || placeholderSvg}
-                    alt={item.name}
-                    onError={(e) => {
-                      // Prevent infinite loop - only set once if not already set
-                      if (!e.target.src.includes('data:image/svg+xml')) {
-                        e.target.src = placeholderSvg;
-                      }
-                      // Stop trying to load if it fails
-                      e.target.onerror = null;
-                    }}
-                    className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                  />
+                  {showImage && (
+                    <img
+                      src={imageSrc}
+                      alt={item.name}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                      className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                    />
+                  )}
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm text-gray-900 line-clamp-2">{item.name}</h4>
                     {item.isCustomized && (
@@ -144,7 +148,7 @@ const OrderSummary = ({
                       <span className="font-bold text-sm text-gray-900">
                         ₹{(discountedPrice * quantity).toFixed(0)}
                       </span>
-                      {item.size && item.size !== "OS" && item.size !== "null" && (
+                      {showSize && (
                         <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
                           Size: {item.size}
                         </span>

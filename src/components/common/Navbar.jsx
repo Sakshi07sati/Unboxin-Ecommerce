@@ -3,13 +3,8 @@ import {
   ShoppingBag,
   User,
   Menu,
-  X,
-  Camera,
   Heart,
-  Shirt,
-  Settings,
   LogOut,
-  Edit,
   Package,
   ChevronDown,
 } from "lucide-react";
@@ -21,12 +16,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../../global_redux/features/auth/authSlice";
 import { fetchCategories } from "../../global_redux/features/category/categoryThunks";
 import { selectCategories } from "../../global_redux/features/category/categorySlice";
+import { fetchSubCategories } from "../../global_redux/features/subCategory/subCategoryThunks";
+import { selectSubCategories } from "../../global_redux/features/subCategory/subCategorySlice";
 
 const Navbar = () => {
   const [openAuth, setOpenAuth] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const categories = useSelector(selectCategories);
+  const subCategories = useSelector(selectSubCategories);
+  const [hoveredCategory, setHoveredCategory] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
  
@@ -49,75 +48,121 @@ const Navbar = () => {
     setIsProfileOpen(false);
     navigate("/");
   };
-   useEffect(() => {
-      dispatch(fetchCategories());
-    }, [dispatch]);
+    useEffect(() => {
+       dispatch(fetchCategories());
+       dispatch(fetchSubCategories());
+     }, [dispatch]);
 
   return (
-    <nav className="bg-white border-b border-border sticky top-0 z-50 shadow-sm">
-      <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-3.5">
         {/* Logo */}
         <div className="flex items-center gap-8">
           <Link to="/">
-            <h1 className="text-primary font-black text-4xl tracking-tighter cursor-pointer">
-              UN<span className="font-normal text-3xl not-italic text-primary">BOX</span>
+            <h1 className="cursor-pointer text-3xl font-black tracking-tight text-primary xl:text-4xl">
+              UN<span className="text-[0.85em] font-medium not-italic text-primary/80">BOX</span>
             </h1>
           </Link>
           
           {/* Navigation Links */}
-          <div className="hidden lg:flex gap-6 font-semibold text-sm text-textPrimary uppercase tracking-wide">
-             <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-             {categories.map((category) => (
-               <Link to="/" key={category._id} className="hover:text-primary transition-colors">
-                 {category.category}
-               </Link>
-             ))}
+          <div className="hidden items-center gap-1 rounded-full border border-gray-100 bg-gray-50/70 p-1 lg:flex">
+             {/* <Link to="/" className="hover:text-primary transition-colors">Home</Link> */}
+             {categories.map((category) => {
+                const categoryId = category._id || category.id;
+                return (
+                  <div 
+                    key={categoryId} 
+                    className="relative group"
+                    onMouseEnter={() => setHoveredCategory(categoryId)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                  >
+                    <Link 
+                      to={`/products?category=${categoryId}`} 
+                      className="flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-wide text-textPrimary transition-colors hover:bg-white hover:text-primary"
+                    >
+                      {category.category}
+                      <ChevronDown size={14} className={`opacity-50 transition-transform duration-300 ${hoveredCategory === categoryId ? "rotate-180" : ""}`} />
+                    </Link>
+                    
+                    {/* Subcategory Dropdown */}
+                    {hoveredCategory === categoryId && (
+                      <div className="animate-in slide-in-from-top-2 absolute left-0 top-[100%] z-[100] min-w-[220px] rounded-2xl border border-gray-100 bg-white py-3 shadow-2xl duration-200 fade-in">
+                        <div className="grid grid-cols-1 gap-1">
+                          {subCategories
+                            .filter((sub) => {
+                              if (!sub.category) return false;
+                              const subCatId = typeof sub.category === "object" ? (sub.category?._id || sub.category?.id) : sub.category;
+                              return subCatId === categoryId;
+                            })
+                            .map((sub) => (
+                              <Link 
+                                key={sub._id || sub.id}
+                                to={`/products?subCategory=${sub._id || sub.id}`}
+                                className="group/item flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-primary/5 hover:text-primary"
+                              >
+                                {sub.name}
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary opacity-0 group-hover/item:opacity-100 transition-opacity"></div>
+                              </Link>
+                            ))}
+                          {subCategories.filter((sub) => {
+                            if (!sub.category) return false;
+                            const subCatId = typeof sub.category === "object" ? (sub.category?._id || sub.category?.id) : sub.category;
+                            return subCatId === categoryId;
+                          }).length === 0 && (
+                            <p className="px-4 py-2 text-xs text-gray-400 italic">No subcategories</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             {/* <a href="#" className="hover:text-primary transition-colors">Fashion</a>
             <a href="#" className="hover:text-primary transition-colors">Beauty</a>
             <a href="#" className="hover:text-primary transition-colors">Electronics</a> */}
             {/* <a href="#" className="hover:text-primary transition-colors">Mobile</a> */}
-            <Link to="/admin/login" className="hover:text-primary transition-colors font-bold">
-              Admin
-            </Link>
+            
           </div>
         </div>
-
+              <Link to="/admin/login" className="hover:text-primary transition-colors font-bold">
+              Admin
+            </Link>
         {/* Search Bar */}
-        <div className="flex-1 max-w-md mx-8 relative hidden md:block">
+        <div className="relative mx-5 hidden max-w-md flex-1 md:block">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <Search size={18} className="text-gray-400" />
+            <Search size={17} className="text-gray-400" />
           </div>
           <input
             type="text"
-            className="w-full bg-gray-100 border-none rounded py-2 pl-10 pr-10 text-sm focus:ring-1 focus:ring-primary transition-all"
+            className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder:text-gray-400 focus:border-primary/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             placeholder="Search for products, styles, brands..."
           />
         </div>
 
         {/* Icons */}
-        <div className="flex items-center gap-6 text-gray-700">
+        <div className="flex items-center gap-2 text-gray-700 sm:gap-3">
           {/* User Profile / Login */}
           <div className="relative" ref={dropdownRef}>
             {user ? (
-              <div className="flex items-center gap-1 cursor-pointer group" onClick={() => setIsProfileOpen(!isProfileOpen)}>
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary transition-all duration-300">
+              <div className="group flex cursor-pointer items-center gap-1" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-primary/10 transition-all duration-300 group-hover:bg-primary">
                   <User size={18} className="text-primary group-hover:text-white" />
                 </div>
-                <ChevronDown size={14} className={`text-gray-400 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`text-gray-400 transition-transform duration-300 ${isProfileOpen ? "rotate-180" : ""}`} />
               </div>
             ) : (
               <button 
                 onClick={() => setOpenAuth(true)}
-                className="flex items-center gap-2 hover:text-primary transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white transition-colors hover:border-primary/30 hover:text-primary"
                 title="Login / Signup"
               >
-                <User size={22}/>
+                <User size={19} />
               </button>
             )}
 
             {/* Profile Dropdown Menu */}
             {user && isProfileOpen && (
-              <div className="absolute right-0 mt-3 w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
+              <div className="animate-in zoom-in absolute right-0 z-50 mt-3 w-64 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl duration-200 fade-in">
                 <div className="bg-primary/5 p-4 border-b border-gray-100">
                   <p className="font-bold text-gray-900 truncate">
                     {user?.username || user?.name || "User"}
@@ -174,23 +219,23 @@ const Navbar = () => {
 
           <AuthModal isOpen={openAuth} onClose={() => setOpenAuth(false)} />
           
-          <Link to="/wishlist" className="hover:text-primary transition-colors relative hidden sm:block">
-            <Heart size={22} />
+          <Link to="/wishlist" className="relative hidden h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white transition-colors hover:border-primary/30 hover:text-primary sm:flex">
+            <Heart size={18} />
           </Link>
 
           <div className="relative">
-             <Link to="/cart" className="flex items-center hover:text-primary transition-colors">
-              <ShoppingBag size={22} />
+             <Link to="/cart" className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white transition-colors hover:border-primary/30 hover:text-primary">
+              <ShoppingBag size={18} />
               {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-primary text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold animate-in zoom-in">
+                <span className="animate-in zoom-in absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
                   {cartItemsCount}
                 </span>
               )}
             </Link>
           </div>
           
-          <button className="lg:hidden hover:text-primary transition-colors">
-            <Menu size={22} />
+          <button className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white transition-colors hover:border-primary/30 hover:text-primary lg:hidden">
+            <Menu size={18} />
           </button>
         </div>
       </div>

@@ -147,7 +147,7 @@ export default function ProductCard({ product }) {
       </div>
 
       {/* 📝 Title */}
-      <h3 className="text-sm font-medium mt-2 line-clamp-2">
+      <h3 className="text-sm   font-medium mt-2 line-clamp-1">
         {product.name}
       </h3>
 

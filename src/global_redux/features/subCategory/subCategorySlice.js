@@ -87,4 +87,8 @@ const subCategorySlice = createSlice({
 });
 
 export const { clearSubCategoryState } = subCategorySlice.actions;
-export default subCategorySlice.reducer;
+
+export const selectSubCategories = (state) => state.subCategory.subCategories;
+export const selectSubCategoryLoading = (state) => state.subCategory.loading;
+
+export default subCategorySlice.reducer;

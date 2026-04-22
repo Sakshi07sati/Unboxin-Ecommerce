@@ -16,6 +16,7 @@ import { X } from "lucide-react";
 import toast from "react-hot-toast";
 
 const EditProduct = () => {
+  const MAX_IMAGES = 4;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -29,7 +30,9 @@ const EditProduct = () => {
   const categories = useSelector(selectCategories);
   const loadingCategories = useSelector(selectCategoryLoading);
   const categoryError = useSelector(selectCategoryError);
-  const { subCategories, loading: subCategoryLoading } = useSelector((state) => state.subCategory);
+  const { subCategories, loading: subCategoryLoading } = useSelector(
+    (state) => state.subCategory,
+  );
 
   // Try to find product in products array first, otherwise use currentProduct if it matches the id
   const productFromStore = products.find((p) => p._id === id);
@@ -116,8 +119,18 @@ const EditProduct = () => {
         name: product.name || "",
         price: product.price || "",
         originalPrice: product.originalPrice || "",
-        category: (product.category?._id || product.category?.id || (typeof product.category === 'string' ? product.category : "")) || "",
-        subCategory: (product.subCategory?._id || product.subCategory?.id || (typeof product.subCategory === 'string' ? product.subCategory : "")) || "",
+        category:
+          product.category?._id ||
+          product.category?.id ||
+          (typeof product.category === "string" ? product.category : "") ||
+          "",
+        subCategory:
+          product.subCategory?._id ||
+          product.subCategory?.id ||
+          (typeof product.subCategory === "string"
+            ? product.subCategory
+            : "") ||
+          "",
         discount: product.discount || "",
         rating: product.rating || "",
         productDetails: product.productDetails || "",
@@ -162,7 +175,7 @@ const EditProduct = () => {
     const files = Array.from(e.target.files);
     const maxFileSize = 50 * 1024 * 1024; // 50MB
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    const maxFiles = 10;
+    const currentTotalImages = images.length;
 
     // Clear previous image errors
     if (errors.images) {
@@ -170,9 +183,12 @@ const EditProduct = () => {
     }
 
     // Validate file count
-    if (images.length + files.length > maxFiles) {
+    if (currentTotalImages + files.length > MAX_IMAGES) {
       toast.error(
-        `Maximum ${maxFiles} images allowed. You can upload ${maxFiles - images.length} more.`,
+        `Maximum ${MAX_IMAGES} images allowed. You can upload ${Math.max(
+          0,
+          MAX_IMAGES - currentTotalImages,
+        )} more.`,
       );
       return;
     }
@@ -208,10 +224,21 @@ const EditProduct = () => {
 
     // Add valid files
     if (validFiles.length > 0) {
-      setImages([...images, ...validFiles]);
+      // Always replace old images when selecting new files in edit mode
+      const mergedRemovedImages = [
+        ...new Set([...removedImages, ...existingImages]),
+      ];
+      setRemovedImages(mergedRemovedImages);
+      setExistingImages([]);
+
+      setImages(validFiles);
       const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
-      setImagePreview([...imagePreview, ...newPreviews]);
+      setImagePreview(newPreviews);
+      toast.success("Old images removed and replaced with new images");
     }
+
+    // Allow selecting the same file again if needed
+    e.target.value = "";
   };
 
   const removeExistingImage = (index) => {
@@ -296,12 +323,15 @@ const EditProduct = () => {
     // Validate images - at least one image required (existing or new)
     if (existingImages.length === 0 && images.length === 0) {
       newErrors.images = "At least one image is required";
-    } else if (images.length > 10) {
-      newErrors.images = "Maximum 10 new images allowed";
+    } else if (existingImages.length + images.length > MAX_IMAGES) {
+      newErrors.images = `Maximum ${MAX_IMAGES} total images allowed`;
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return {
+      isValid: Object.keys(newErrors).length === 0,
+      formErrors: newErrors,
+    };
   };
 
   // 🔹 Submit Handler
@@ -309,10 +339,11 @@ const EditProduct = () => {
     e.preventDefault();
 
     // Validate form
-    if (!validateForm()) {
+    const { isValid, formErrors } = validateForm();
+    if (!isValid) {
       toast.error("⚠️ Please fix the errors in the form");
       // Scroll to first error
-      const firstErrorField = Object.keys(errors)[0];
+      const firstErrorField = Object.keys(formErrors)[0];
       if (firstErrorField) {
         const element = document.querySelector(`[name="${firstErrorField}"]`);
         if (element) {
@@ -327,43 +358,43 @@ const EditProduct = () => {
       size: variant.size,
       stock: Number(variant.stock) || 0,
     }));
-    
+
     const submitData = new FormData();
+    // Match AddProduct order exactly to avoid backend validation issues
     submitData.append("name", formData.name.trim());
+    submitData.append("price", formData.price);
     submitData.append("category", formData.category);
     submitData.append("subCategory", formData.subCategory || "");
+    submitData.append("originalPrice", formData.originalPrice || "");
+    // Do NOT send discount field; backend does not allow it
     submitData.append("productDetails", formData.productDetails || "");
     submitData.append("productDescription", formData.productDescription || "");
-    submitData.append("price", formData.price);
-    submitData.append("originalPrice", formData.originalPrice || "");
-    submitData.append("rating", formData.rating || "0");
-    
     submitData.append("quantity", calculateTotalQuantity().toString());
-    
+
     // Send null if no stock is provided for any size, as seen in working Postman request
-    const hasStock = sizesArray.some(s => s.stock > 0);
+    const hasStock = sizesArray.some((s) => s.stock > 0);
     submitData.append("sizes", hasStock ? JSON.stringify(sizesArray) : "null");
 
-    // Append new images if any
-    images.forEach((img) => submitData.append("img", img));
+    // Only send images if backend expects them for update (remove if not allowed)
+    if (images.length > 0) {
+      images.forEach((img) => submitData.append("img", img));
+    }
 
-    if (existingImages.length > 0) {
-      submitData.append("existingImages", JSON.stringify(existingImages));
-    }
-    if (removedImages.length > 0) {
-      submitData.append("removedImages", JSON.stringify(removedImages));
-    }
-    
-    // FINAL DEBUG LOG
-    console.log("--- Submitting FormData (Final Check) ---");
+    // Debug log before submission
+    console.log("--- Final FormData Before Submission ---");
     for (let pair of submitData.entries()) {
-      console.log(`${pair[0]}: ${pair[1]}`);
+      const value = pair[1];
+      if (value instanceof File) {
+        console.log(`${pair[0]}: [File] ${value.name} (${value.size} bytes)`);
+      } else {
+        console.log(`${pair[0]}: ${value}`);
+      }
     }
-
     try {
       const res = await dispatch(
         updateProduct({ id, productData: submitData }),
       );
+      console.log("2", res);
       if (res.type.endsWith("fulfilled")) {
         toast.success("✅ Product updated successfully!");
         setTimeout(() => navigate("/admin/products"), 600);
@@ -398,7 +429,7 @@ const EditProduct = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        Edit Product - {product.name}
+        Edit Products - {product.name}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -474,7 +505,10 @@ const EditProduct = () => {
                 {subCategoryLoading && <option>Loading...</option>}
                 {subCategories
                   .filter((sub) => {
-                    const catId = typeof sub.category === "object" ? (sub.category?._id || sub.category?.id) : sub.category;
+                    const catId =
+                      typeof sub.category === "object"
+                        ? sub.category?._id || sub.category?.id
+                        : sub.category;
                     return catId === formData.category;
                   })
                   .map((sub) => (
@@ -484,7 +518,9 @@ const EditProduct = () => {
                   ))}
               </select>
               {errors.subCategory && (
-                <p className="text-red-500 text-sm mt-1">{errors.subCategory}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.subCategory}
+                </p>
               )}
             </div>
           </div>
@@ -657,8 +693,8 @@ const EditProduct = () => {
             className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-sm text-gray-500 mt-2">
-            Upload new images (max 4). Supported formats: JPEG, PNG,
-            WebP.
+            Upload new images (max {MAX_IMAGES} total). Supported formats: JPEG,
+            PNG, WebP.
           </p>
           {errors.images && (
             <p className="text-red-500 text-sm mt-1">{errors.images}</p>
@@ -725,19 +761,6 @@ const EditProduct = () => {
                 rows="5"
               />
             </div>
-            {/* <div>
-              <label className="block font-semibold mb-1 text-gray-700">
-                Product Description
-              </label>
-              <textarea
-                name="productDescription"
-                value={formData.productDescription}
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-2 rounded"
-                placeholder="Detailed product description..."
-                rows="3"
-              />
-            </div> */}
           </div>
         </div>
 

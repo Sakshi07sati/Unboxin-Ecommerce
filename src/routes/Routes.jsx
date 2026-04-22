@@ -12,6 +12,7 @@ import BannerManagement from "../pages/adminDashboard/banners/Banner";
 import AddProduct from "../pages/adminDashboard/product/AddProduct";
 import EditProduct from "../pages/adminDashboard/product/EditProduct";
 import Products from "../pages/adminDashboard/product/Product";
+import PublicProducts from "../pages/ProductSection/Products";
 import ViewProduct from "../pages/adminDashboard/product/ViewProduct";
 import ProductDetails from "../pages/ProductSection/ProductDetails";
 import SubCategory from "../pages/adminDashboard/subCategory/SubCategory";
@@ -30,6 +31,8 @@ import CartPage from "../pages/cartPage/CartPage";
 import CheckoutPage from "../pages/checkout/CheckoutPage";
 import NotFound from "../pages/notFound/NotFound";
 import Profile from "../pages/profile/Profile";
+import Contacts from "../pages/contacts/Contacts";
+import About from "../pages/about/About";
 
 const AllRoutes = () => {
   return (
@@ -42,6 +45,9 @@ const AllRoutes = () => {
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/products" element={<PublicProducts />} />
+      <Route path="/contacts" element={<Contacts />} />
+      <Route path="/about" element={<About />} />
       <Route path="/admin/login" element={<AdminLogin />} />
 
       {/* Protected Admin Routes */}

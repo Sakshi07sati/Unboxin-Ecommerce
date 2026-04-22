@@ -24,6 +24,13 @@ const CartPage = () => {
   const itemsCount = useSelector(selectCartItemsCount);
   const navigate = useNavigate();
 
+  const hasDisplaySize = (size) =>
+    size !== null &&
+    size !== undefined &&
+    String(size).trim() !== "" &&
+    String(size).toLowerCase() !== "null" &&
+    String(size).toUpperCase() !== "OS";
+
   const handleRemove = (itemId) => {
     dispatch(removeFromCart(itemId));
     toast.success('Item removed from cart');
@@ -124,6 +131,9 @@ const CartPage = () => {
                 {cartItems.map((item, index) => {
                   const currentSizeStock = item.maxStock || 0;
                   const isLowStock = currentSizeStock - item.quantity <= 3;
+                  const imageSrc = Array.isArray(item.image) ? item.image[0] : item.image;
+                  const showImage = Boolean(imageSrc);
+                  const showSize = hasDisplaySize(item.size) && Array.isArray(item.sizes) && item.sizes.length > 0;
 
                   return (
                     <div
@@ -132,25 +142,18 @@ const CartPage = () => {
                     >
                       <div className="flex flex-col sm:flex-row h-full md:h-72 gap-3 sm:gap-4 p-3 sm:p-4">
                         {/* Product Image */}
-                        <div className="w-full sm:w-40 lg:w-56 h-48 sm:h-auto overflow-hidden">
-                          {/* Use inline SVG placeholder instead of external URL */}
-                          {(() => {
-                            const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect width='150' height='150' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
-                            return (
-                              <img
-                                src={item.image || placeholderSvg}
-                                alt={item.name || 'Product'}
-                                onError={(e) => {
-                                  if (!e.target.src.includes('data:image/svg+xml')) {
-                                    e.target.src = placeholderSvg;
-                                  }
-                                  e.target.onerror = null;
-                                }}
-                                className="w-full h-full object-cover rounded-lg sm:rounded-xl"
-                              />
-                            );
-                          })()}
-                        </div>
+                        {showImage && (
+                          <div className="w-full sm:w-40 lg:w-56 h-48 sm:h-auto overflow-hidden">
+                            <img
+                              src={imageSrc}
+                              alt={item.name || 'Product'}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                              className="w-full h-full object-cover rounded-lg sm:rounded-xl"
+                            />
+                          </div>
+                        )}
 
                         {/* Product Details */}
                         <div className="flex flex-col justify-between flex-1">
@@ -177,7 +180,7 @@ const CartPage = () => {
                             {/* Size and Quantity */}
                             <div className="flex flex-row sm:flex-row gap-3 sm:gap-4 mb-3 sm:mb-4">
                               {/* Size Selector */}
-                              {item.size && item.size !== "OS" && item.size !== "null" && (
+                              {showSize && (
                                 <div className="">
                                   <label className="text-xs text-gray-500 block mb-1 font-medium uppercase">Size</label>
                                   <div className="flex items-center gap-2">
