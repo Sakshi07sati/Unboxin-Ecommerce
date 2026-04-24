@@ -90,7 +90,10 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addToCart } from "../../global_redux/features/cart/cartSlice";
-import { toggleWishlist } from "../../global_redux/features/wishlist/wishlistSlice";
+import {
+  addToWishlist,
+  removeFromWishlist,
+} from "../../global_redux/features/wishlist/wishlistSlice";
 import { Heart, ShoppingCart } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -117,7 +120,13 @@ export default function ProductCard({ product }) {
 
   const handleWishlistClick = (e) => {
     e.stopPropagation();
-    dispatch(toggleWishlist(product));
+    if (isWishlisted) {
+      dispatch(removeFromWishlist(product._id));
+      toast.success("Removed from wishlist");
+      return;
+    }
+    dispatch(addToWishlist(product));
+    toast.success("Added to wishlist");
   };
 
   return (
@@ -192,6 +201,8 @@ export default function ProductCard({ product }) {
               size: firstSize?.size || "OS",
               maxStock: firstSize?.stock || 10,
               sizes: product.sizes || [],
+              category: product.category?._id || product.category || product.categoryId,
+              subCategory: product.subCategory?._id || product.subCategory || product.subCategoryId,
             })
           );
           toast.success(`${product.name} added to cart!`);

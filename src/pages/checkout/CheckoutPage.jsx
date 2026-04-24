@@ -160,7 +160,7 @@ const CheckoutPage = () => {
         return {
           item,
           productId: (item._id || item.id || "").split("_")[0],
-          categoryId: item.category?._id || item.category || item.categoryId,
+          subCategoryId: item.subCategory?._id || item.subCategory || item.subCategoryId || item.category?._id || item.category || item.categoryId,
           itemPrice: finalItemPrice,
         };
       })
@@ -210,8 +210,10 @@ const CheckoutPage = () => {
 
   // 🎟 Apply Promo Code
   const handleApplyPromo = useCallback(async () => {
-    if (!promoCode.trim()) {
+    const trimmedCode = promoCode.trim();
+    if (!trimmedCode) {
       setPromoError("Please enter a promo code");
+      setPromoSuccess("");
       return;
     }
 
@@ -221,31 +223,36 @@ const CheckoutPage = () => {
     try {
       let applied = false;
       let lastError = "";
-
+      console.log("CheckoutPage: Applying promo code. Items in check:", sortedProductsByPrice);
       for (const product of sortedProductsByPrice) {
         try {
-          console.log(product)
           const result = await dispatch(
             applyPromoCode({
-              code: promoCode.trim(),
+              code: trimmedCode,
               productId: product.productId,
-              subCategoryId: product.categoryId,
+              subCategoryId: product.subCategoryId,
               totalAmount: subtotal,
               productName: product.item.name,
+              userEmail: formData.email || user?.email,
             }),
           ).unwrap();
-          console.log(result)
-          // setPromoSuccess({
-          //   message: result.message || "Promo code applied successfully!",
-          //   productName: product.item.name,
-          //   discount: result.discount,
-          // });
-          // setPromoCode("");
+
+          setPromoSuccess({
+            message: result?.message || "Promo code applied successfully!",
+            productName: product.item.name,
+            discount: result?.discount || 0,
+          });
           applied = true;
           break;
         } catch (err) {
-          lastError = err;
-          if (err && err.includes("already used")) break;
+          const errorMessage =
+            err?.response?.data?.message ||
+            (typeof err === "string" ? err : err?.message) ||
+            "Invalid or expired promo code";
+
+          lastError = errorMessage;
+
+          if (errorMessage.toLowerCase().includes("already used")) break;
           continue;
         }
       }
@@ -256,7 +263,11 @@ const CheckoutPage = () => {
         );
       }
     } catch (err) {
-      setPromoError(err || "Invalid or expired promo code");
+      const errorMessage =
+        err?.response?.data?.message ||
+        (typeof err === "string" ? err : err?.message) ||
+        "Invalid or expired promo code";
+      setPromoError(errorMessage);
     }
   }, [promoCode, sortedProductsByPrice, subtotal, dispatch]);
 
@@ -441,6 +452,7 @@ const CheckoutPage = () => {
                 promoCode={promoCode}
                 promoError={promoError}
                 promoSuccess={promoSuccess}
+                promoLoading={status === "loading"}
                 onApplyPromo={handleApplyPromo}
                 onRemovePromo={handleRemovePromo}
                 onPromoCodeChange={setPromoCode}

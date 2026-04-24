@@ -379,6 +379,14 @@ const EditProduct = () => {
     if (images.length > 0) {
       images.forEach((img) => submitData.append("img", img));
     }
+    
+    if (existingImages.length > 0) {
+      existingImages.forEach((img) => submitData.append("existingImages", img));
+    }
+
+    if (removedImages.length > 0) {
+      removedImages.forEach((img) => submitData.append("removedImages", img));
+    }
 
     // Debug log before submission
     console.log("--- Final FormData Before Submission ---");

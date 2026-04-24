@@ -30,6 +30,7 @@ const Navbar = () => {
   const navigate = useNavigate();
  
   const cartItemsCount = useSelector(selectCartItemsCount);
+  const wishlistCount = useSelector((state) => state.wishlist.items?.length || 0);
   const { user } = useSelector((state) => state.auth);
 
   // Close dropdown when clicking outside
@@ -221,6 +222,11 @@ const Navbar = () => {
           
           <Link to="/wishlist" className="relative hidden h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white transition-colors hover:border-primary/30 hover:text-primary sm:flex">
             <Heart size={18} />
+            {wishlistCount > 0 && (
+              <span className="animate-in zoom-in absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
+                {wishlistCount}
+              </span>
+            )}
           </Link>
 
           <div className="relative">

@@ -60,10 +60,12 @@ const cartSlice = createSlice({
         size, 
         memberSavings, 
         sizes, 
-        maxStock 
+        maxStock,
+        category, // ✅ ADD THIS
+        subCategory // ✅ ADD THIS
       } = action.payload;
 
-      console.log("Adding to cart:", action.payload);
+      console.log("cartSlice: Adding item to cart. Payload:", action.payload);
       
       // Create unique item id based on productId and size
       const itemId = `${productId}_${size}`;
@@ -90,7 +92,9 @@ const cartSlice = createSlice({
           quantity: 1,
           memberSavings: memberSavings || 0,
           sizes: sizes || [], // Store all sizes with stock for cart validation
-          maxStock: maxStock // Store max available stock for this size
+          maxStock: maxStock, // Store max available stock for this size
+          category: category, // ✅ STORE THIS
+          subCategory: subCategory
         });
       }
       
@@ -112,7 +116,10 @@ const cartSlice = createSlice({
       if (state.appliedPromo && removedItem) {
         const validProducts = state.appliedPromo.validProducts || [];
         const updatedValidProducts = validProducts.filter(
-          p => state.items.some(item => item.productId === p.productId)
+          p => state.items.some(item => {
+            const itemSubCategoryId = item.subCategory?._id || item.subCategory || item.category?._id || item.category || item.subCategoryId || item.categoryId;
+            return item.productId === p.productId || itemSubCategoryId === p.subCategoryId;
+          })
         );
         
         if (updatedValidProducts.length === 0) {

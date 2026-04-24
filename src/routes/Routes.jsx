@@ -33,6 +33,7 @@ import NotFound from "../pages/notFound/NotFound";
 import Profile from "../pages/profile/Profile";
 import Contacts from "../pages/contacts/Contacts";
 import About from "../pages/about/About";
+import Wishlist from "../pages/wishlist/Wishlist";
 
 const AllRoutes = () => {
   return (
@@ -46,6 +47,7 @@ const AllRoutes = () => {
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/products" element={<PublicProducts />} />
+      <Route path="/wishlist" element={<Wishlist />} />
       <Route path="/contacts" element={<Contacts />} />
       <Route path="/about" element={<About />} />
       <Route path="/admin/login" element={<AdminLogin />} />

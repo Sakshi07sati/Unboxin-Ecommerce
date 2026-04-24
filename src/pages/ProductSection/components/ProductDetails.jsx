@@ -5,7 +5,10 @@ import API from "../../../global_redux/api";
 import { ChevronRight, Star, Heart, ShoppingBag } from "lucide-react";
 import toast from "react-hot-toast";
 import { addToCart } from "../../../global_redux/features/cart/cartSlice";
-import { toggleWishlist } from "../../../global_redux/features/wishlist/wishlistSlice";
+import {
+  addToWishlist,
+  removeFromWishlist,
+} from "../../../global_redux/features/wishlist/wishlistSlice";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -23,7 +26,8 @@ const ProductDetails = () => {
       try {
         setLoading(true);
         const res = await API.get(`/products/${id}`);
-        const data = res.data.data;
+        const data = res.data.product || res.data.data || res.data;
+        console.log("ProductDetails: Extracted product data:", data);
 
         setProduct(data);
         // Set initial image
@@ -62,6 +66,7 @@ const ProductDetails = () => {
       return;
     }
     const sizeInfo = availableSizes?.find((s) => s.size === selectedSize);
+    console.log("ProductDetails: Adding to cart, product data:", product);
     dispatch(
       addToCart({
         productId: product._id,
@@ -72,16 +77,19 @@ const ProductDetails = () => {
         size: selectedSize,
         maxStock: sizeInfo?.stock || 10,
         sizes: availableSizes || [],
+        category: product.category?._id || product.category || product.categoryId,
+        subCategory: product.subCategory?._id || product.subCategory || product.subCategoryId,
       })
     );
     toast.success(`${product.name} (${selectedSize}) added to cart!`);
   };
 
   const handleWishlist = () => {
-    dispatch(toggleWishlist(product));
     if (isWishlisted) {
+      dispatch(removeFromWishlist(product._id));
       toast.success("Removed from wishlist");
     } else {
+      dispatch(addToWishlist(product));
       toast.success("Added to wishlist!");
     }
   };

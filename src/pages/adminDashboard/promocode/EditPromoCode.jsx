@@ -96,7 +96,7 @@ const EditPromoCode = ({ promo, onClose }) => {
           setIsSubmitting(false);
           return;
         }
-        payload.applicableCategory = formData.applicableCategory;
+        payload.applicableSubCategory = formData.applicableCategory;
         payload.applicableProduct = null;
       } else {
         if (!formData.applicableProduct.trim()) {
@@ -243,7 +243,7 @@ const EditPromoCode = ({ promo, onClose }) => {
                 onChange={handleChange}
                 className="w-full border p-3 rounded-lg bg-white"
               >
-                <option value="">-- Select Category --</option>
+                <option value="">-- Select Subcategory --</option>
                 {subCategories && subCategories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}

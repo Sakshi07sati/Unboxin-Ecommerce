@@ -5,14 +5,15 @@ import API from "@/global_redux/api";
 // ✅ Admin/Sub-Admin - Get All Promo Codes
 export const getAllPromoCodes = createAsyncThunk(
   "promoCode/getAllPromoCodes",
-  async (_, { rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
+      console.log("Thunk: getAllPromoCodes started");
       // Let the API interceptor handle token injection
       const response = await API.get("/promos/show");
-      console.log("Fetched promo codes:", response.data);
+      console.log("Thunk: getAllPromoCodes success:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Get All Error:", error.response?.data || error.message);
+      console.error("Thunk: getAllPromoCodes error:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch promo codes"
       );
@@ -20,12 +21,12 @@ export const getAllPromoCodes = createAsyncThunk(
   }
 );
 
-// ✅ Admin/Sub-Admin - Create Promo Code
+// ✅ Admin/ - Create Promo Code
 export const addPromoCode = createAsyncThunk(
   "promoCode/addPromoCode",
-  async (promoData, { rejectWithValue }) => {
+  async (promoData, { getState, rejectWithValue }) => {
     try {
-      console.log("Creating promo code with data:", promoData);
+      console.log("Thunk: addPromoCode started with data:", promoData);
       
       // Let the API interceptor handle token injection
       const response = await API.post("/promos", promoData, {
@@ -34,10 +35,10 @@ export const addPromoCode = createAsyncThunk(
         },
       });
       
-      console.log("Create Response:", response.data);
+      console.log("Thunk: addPromoCode success:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Create Error:", error.response?.data || error.message);
+      console.error("Thunk: addPromoCode error:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data?.message || "Failed to create promo code"
       );
@@ -48,9 +49,9 @@ export const addPromoCode = createAsyncThunk(
 // ✅ Admin/Sub-Admin - Update Promo Code
 export const updatePromoCode = createAsyncThunk(
   "promoCode/updatePromoCode",
-  async ({ id, promoData }, { rejectWithValue }) => {
+  async ({ id, promoData }, { getState, rejectWithValue }) => {
     try {
-      console.log("Updating promo code:", id, "with data:", promoData);
+      console.log("Thunk: updatePromoCode started for id:", id, "data:", promoData);
 
       const backendPayload = {
         code: promoData.code,
@@ -60,8 +61,8 @@ export const updatePromoCode = createAsyncThunk(
         usageLimit: promoData.usageLimit,
       };
 
-      if (promoData.applicableCategory) {
-        backendPayload.applicableCategory = promoData.applicableCategory;
+      if (promoData.applicableSubCategory) {
+        backendPayload.applicableSubCategory = promoData.applicableSubCategory;
       }
       if (promoData.applicableProduct) {
         backendPayload.applicableProduct = promoData.applicableProduct;
@@ -76,7 +77,7 @@ export const updatePromoCode = createAsyncThunk(
         },
       });
 
-      console.log("Update Response:", response.data);
+      console.log("Thunk: updatePromoCode success:", response.data);
 
       // Normalize returned data
       if (response.data && !response.data.promoCode && !response.data.promo) {
@@ -88,7 +89,7 @@ export const updatePromoCode = createAsyncThunk(
       }
       return response.data;
     } catch (error) {
-      console.error("Update Error Details:", {
+      console.error("Thunk: updatePromoCode error:", {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message,
@@ -103,9 +104,9 @@ export const updatePromoCode = createAsyncThunk(
 // ✅ Admin/Sub-Admin - Delete Promo Code
 export const deletePromoCode = createAsyncThunk(
   "promoCode/deletePromoCode",
-  async (id, { rejectWithValue }) => {
+  async (id, { getState, rejectWithValue }) => {
     try {
-      console.log("Deleting promo code:", id);
+      console.log("Thunk: deletePromoCode started for id:", id);
       
       // Let the API interceptor handle token injection
       const response = await API.delete(`/promos/${id}`);
@@ -124,11 +125,12 @@ export const deletePromoCode = createAsyncThunk(
 // ✅ User - Apply Promo Code
 export const applyPromoCode = createAsyncThunk(
   "promoCode/applyPromoCode",
-  async ({ code, productId, subCategoryId, totalAmount, productName }, { rejectWithValue }) => {
+  async ({ code, productId, subCategoryId, totalAmount, productName, userEmail: providedEmail }, { getState, rejectWithValue }) => {
     try {
-    const userEmail="govind@gmail.com"
+      const state = getState();
+      const userEmail = providedEmail || state.auth?.user?.email || "";
       // const token = localStorage.getItem("token");
-      console.log("Applying promo code:", { code, productId, subCategoryId,userEmail, totalAmount ,productName});
+      console.log("Thunk: applyPromoCode started with:", { code, productId, subCategoryId, userEmail, totalAmount, productName });
         
       const payload = { 
         code, 
@@ -169,9 +171,9 @@ export const applyPromoCode = createAsyncThunk(
 
 export const removePromoCode = createAsyncThunk(
   "promoCode/removePromoCode",
-  async (_, { rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
-      console.log("Removing promo code from state");
+      console.log("Thunk: removePromoCode started");
       return { success: true, message: "Promo code removed" };
     } catch (error) {
       return rejectWithValue("Failed to remove promo code");

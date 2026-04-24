@@ -17,8 +17,11 @@ const AddPromoCode = () => {
   // GET subcategories from Redux
   const { subCategories } = useSelector((state) => state.subCategory);
 
-  // Load categories on mount
+  console.log("AddPromoCode: Current subCategories in state:", subCategories);
+
+  // Load subcategories on mount
   useEffect(() => {
+    console.log("AddPromoCode: Fetching subcategories...");
     dispatch(fetchSubCategories());
   }, [dispatch]);
 
@@ -88,7 +91,7 @@ const AddPromoCode = () => {
           return;
         }
 
-        payload.applicableCategory = formData.applicableCategory; // _id value
+        payload.applicableSubCategory = formData.applicableCategory; // Use applicableSubCategory for backend
       }
 
       // PRODUCT CASE
@@ -100,7 +103,7 @@ const AddPromoCode = () => {
 
         payload.applicableProduct = formData.applicableProduct.trim();
       }
-
+      console.log("payload:", payload);
       await dispatch(addPromoCode(payload)).unwrap();
       toast.success("Promo code added successfully!");
 
@@ -243,13 +246,19 @@ const AddPromoCode = () => {
                 onChange={handleChange}
                 className="w-full border p-3 mt-1 rounded-lg bg-white"
               >
-                <option value="">-- Select Category --</option>
+                <option value="">-- Select Subcategory --</option>
 
-                {subCategories && subCategories.map((cat) => (
+                {/* Show Sub Categories */}
+                {subCategories && Array.isArray(subCategories) && subCategories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
                   </option>
                 ))}
+
+                {/* Fallback if empty */}
+                {(!subCategories || subCategories.length === 0) && (
+                  <option disabled>No subcategories found</option>
+                )}
               </select>
             </div>
           )}
