@@ -28,7 +28,7 @@ const AdminNav = () => {
                 <div className="flex items-center gap-3">
                   <div className="text-right hidden sm:block">
                     <p className="text-sm font-bold text-gray-900 leading-tight">Admin User</p>
-                    <p className="text-xs text-blue-600 font-medium tracking-wide uppercase">Super Admin</p>
+                    <p className="text-xs text-blue-600 font-medium tracking-wide uppercase">Admin</p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-blue-100 transition-transform hover:scale-105">
                     <Shield className="w-5 h-5" />

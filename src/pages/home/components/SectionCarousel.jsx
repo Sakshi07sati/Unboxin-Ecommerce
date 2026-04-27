@@ -10,6 +10,7 @@ import {
   ChevronRight,
   ArrowRight,
   Eye,
+  ShoppingCart,
 } from "lucide-react";
 import { fetchProductById } from "../../../global_redux/features/product/productThunks";
 import { addToCart } from "../../../global_redux/features/cart/cartSlice";
@@ -198,7 +199,7 @@ const SectionCarousel = ({ sectionId, sectionName, productIds }) => {
                 {/* Image Container */}
                 <div 
                   onClick={() => navigate(`/product/${product._id}`)}
-                  className="relative mb-3 cursor-pointer overflow-hidden rounded-2xl"
+                  className="relative mb-2 cursor-pointer overflow-hidden rounded-2xl"
                 >
                   <img
                     src={product.img?.[0] ||"/placeholder.png"}
@@ -213,10 +214,10 @@ const SectionCarousel = ({ sectionId, sectionName, productIds }) => {
                         e.stopPropagation();
                         handleAddToCart(product);
                       }}
-                      className="flex w-full translate-y-4 items-center justify-center gap-2 rounded-xl bg-white/95 px-5 py-2.5 text-sm font-bold text-slate-900 opacity-0 shadow-lg transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+                      className="flex w-full translate-y-4 items-center justify-center gap-2 rounded-xl bg-primary/95 px-5 py-2.5 text-sm font-bold text-white opacity-0 shadow-lg transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
                     >
-                      <Eye className="h-4 w-4" />
-                      Quick Add
+                      <ShoppingCart size={15} />
+                      Add to Cart
                     </button>
                   </div>
                 </div>

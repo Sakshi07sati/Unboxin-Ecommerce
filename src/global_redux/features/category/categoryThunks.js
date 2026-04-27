@@ -15,7 +15,7 @@ export const fetchCategories = createAsyncThunk(
       };
 
       const res = await API.get("/categories", config);
-      console.log(res)
+      // console.log(res)
       // Backend might return categories in different structures
       const data = res.data.categories || res.data.products || res.data.data || (Array.isArray(res.data) ? res.data : []);
       return data;
@@ -41,10 +41,10 @@ export const addCategory = createAsyncThunk(
           "Content-Type": "application/json",
         },
       };
-      console.log("data:", categoryData);
+      // console.log("data:", categoryData);
       const res = await API.post("/categories", categoryData, config);
       // Return the created category data
-      console.log(res);
+      // console.log(res);
       return res.data.category || res.data.data || res.data;
     } catch (err) {
       return rejectWithValue(

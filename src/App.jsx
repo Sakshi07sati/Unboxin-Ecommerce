@@ -4,22 +4,12 @@ import "./index.css";
 import { Toaster } from "react-hot-toast";
 import ScrollToTop from './components/common/ScrollToTop';
 import AllRoutes from '../src/routes/Routes';
-// import { useEffect, useState } from "react";
-
-// import { CategoryProvider } from "./context/CategoryContext";
-// import 'swiper/css';
-// import 'swiper/css/effect-coverflow';
-// import 'swiper/css/pagination';
-
-
 
 const App = () => {
 
   return (
     <div>
-      {/* <CategoryProvider> */}
         <BrowserRouter>
-         {/* {isLoading && <TeezinesLoader />} */}
         <ScrollToTop />
 
           <AllRoutes />

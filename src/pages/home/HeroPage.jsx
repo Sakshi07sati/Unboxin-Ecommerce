@@ -63,6 +63,7 @@ const HeroPage = () => {
             index === currentSlide ? 'opacity-100 z-0' : 'opacity-0 -z-10'
           }`}
         >
+          <Link to={`/product/${slides[currentSlide]?.productId?._id || ""}`} >
           <div
             className="w-full h-full bg-cover bg-center transition-transform duration-[5000ms]"
             style={{
@@ -72,7 +73,8 @@ const HeroPage = () => {
           >
             {/* Dark Overlay */}
             <div className="absolute inset-0 bg-black/40" />
-          </div>
+            </div>
+          </Link>
         </div>
       ))}
 
@@ -100,9 +102,9 @@ const HeroPage = () => {
           {slides[currentSlide].heading ? slides[currentSlide].title : slides[currentSlide].subtitle}
         </p>
         
-        <Link to={`/product/${slides[currentSlide]?.productId?._id || ""}`} className="inline-block px-8 py-3 bg-primary text-white rounded-md font-bold hover:scale-105 transition-transform uppercase tracking-widest text-sm">
-         View Now
-        </Link>
+        {/* <Link to={`/product/${slides[currentSlide]?.productId?._id || ""}`} className="inline-block px-8 py-3 bg-primary text-white rounded-md font-bold hover:scale-105 transition-transform uppercase tracking-widest text-sm"> */}
+         {/* View Now */}
+        {/* </Link> */}
          
       </div>
 
