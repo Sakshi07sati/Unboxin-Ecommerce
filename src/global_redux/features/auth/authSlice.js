@@ -154,6 +154,7 @@ const initialState = {
 
   allUsers: [],
   usersLoading: false,
+  isModalOpen: false,
 };
 
 const authSlice = createSlice({
@@ -168,6 +169,10 @@ const authSlice = createSlice({
 
     setOtpData: (state, action) => {
       state.otpData = action.payload;
+    },
+
+    toggleModal: (state, action) => {
+      state.isModalOpen = action.payload !== undefined ? action.payload : !state.isModalOpen;
     },
 
     // EXISTING
@@ -361,6 +366,7 @@ export const {
   startLoading,
   setStep,
   setOtpData,
+  toggleModal,
 } = authSlice.actions;
 
 // SELECTORS

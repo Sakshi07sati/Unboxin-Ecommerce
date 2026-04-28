@@ -319,52 +319,76 @@ const LoginModal = ({ onClose }) => {
   };
 
   return (
-  <div>
-    <h2 className="text-2xl font-semibold text-center mb-6">
-      Login
-    </h2>
+    <div className="space-y-5 font-['Outfit']">
+      <div className="text-center space-y-1">
+        <h2 className="text-2xl font-bold  text-slate-900">
+          Welcome Back
+        </h2>
+        <p className="text-slate-500 text-sm">
+          Login to your account to continue shopping
+        </p>
+      </div>
 
-    <form onSubmit={handleLogin} className="space-y-5">
+      <form onSubmit={handleLogin} className="space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-400  ml-1">Email Address</label>
+            <input
+              name="email"
+              type="email"
+              placeholder="name@example.com"
+              required
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none  focus:border-pink-500 transition-all text-sm"
+            />
+          </div>
 
-      <input
-        name="email"
-        placeholder="Email"
-        required
-        className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-pink-600"
-      />
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center px-1">
+              <label className="text-xs font-bold text-slate-400  ">Password</label>
+              <span className="text-[10px] font-bold text-pink-600 cursor-pointer hover:underline uppercase  ">Forgot?</span>
+            </div>
+            <input
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              required
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none  focus:border-pink-500 transition-all text-sm"
+            />
+          </div>
+        </div>
 
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        required
-        className="w-full border-b border-gray-300 py-2 focus:outline-none focus:border-pink-600"
-      />
+        {error && (
+          <div className="bg-red-50 text-red-500 p-3 rounded-xl text-center text-xs font-medium border border-red-100 animate-shake">
+            {error}
+          </div>
+        )}
 
-      {error && (
-        <p className="text-red-500 text-sm text-center">{error}</p>
-      )}
-
-      <button
-        className="w-full bg-pink-600 text-white py-3 rounded-md font-bold hover:bg-pink-700 transition"
-        disabled={loading}
-      >
-        {loading ? "Logging in..." : "LOGIN"}
-      </button>
-
-      <p className="text-center text-sm text-gray-500">
-        Don’t have an account?{" "}
-        <span
-          onClick={() => dispatch(setStep("signup"))}
-          className="text-pink-600 font-semibold cursor-pointer"
+        <button
+          className="w-full bg-primary text-white py-4 rounded-2xl font-bold  transition-all active:scale-[0.98] shadow-xl shadow-slate-200 mt-2"
+          disabled={loading}
         >
-          Sign Up
-        </span>
-      </p>
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              Signing in...
+            </span>
+          ) : "SIGN IN"}
+        </button>
 
-    </form>
-  </div>
-);
+        <div className="pt-4 text-center">
+          <p className="text-sm text-slate-500">
+            Don’t have an account?{" "}
+            <span
+              onClick={() => dispatch(setStep("signup"))}
+              className="text-pink-600 font-bold cursor-pointer hover:underline ml-1"
+            >
+              Sign Up
+            </span>
+          </p>
+        </div>
+      </form>
+    </div>
+  );
 };
 
 export default LoginModal;

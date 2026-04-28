@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   updateProduct,
   fetchProductById,
-} from "../../../global_redux/features/product/productThunks";
+} from "../../../global_redux/features/product/productThunks"; // ✅ FIXED: correct import path
 import { fetchCategories } from "../../../global_redux/features/category/categoryThunks";
 import {
   selectCategories,
@@ -12,7 +12,7 @@ import {
   selectCategoryLoading,
 } from "../../../global_redux/features/category/categorySlice";
 import { fetchSubCategories } from "../../../global_redux/features/subCategory/subCategoryThunks";
-import { X } from "lucide-react";
+import { X, ImagePlus } from "lucide-react";
 import toast from "react-hot-toast";
 
 const EditProduct = () => {
@@ -34,7 +34,6 @@ const EditProduct = () => {
     (state) => state.subCategory,
   );
 
-  // Try to find product in products array first, otherwise use currentProduct if it matches the id
   const productFromStore = products.find((p) => p._id === id);
   const product =
     productFromStore ||
@@ -46,7 +45,6 @@ const EditProduct = () => {
     originalPrice: "",
     category: "",
     subCategory: "",
-    discount: "",
     rating: "",
     productDetails: "",
     productDescription: "",
@@ -60,360 +58,261 @@ const EditProduct = () => {
     { size: "XXL", stock: 0 },
   ]);
 
-  const [images, setImages] = useState([]);
-  const [imagePreview, setImagePreview] = useState([]);
-  const [existingImages, setExistingImages] = useState([]);
-  const [removedImages, setRemovedImages] = useState([]);
+  const [savedImages, setSavedImages] = useState([]);   // server URLs (display only)
+  const [newImages, setNewImages]     = useState([]);   // File objects to upload
+  const [imageChanged, setImageChanged] = useState(false);
+
   const [loading, setLoading] = useState(true);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors]   = useState({});
 
-  // 🟢 Fetch product by ID if not in store
+  // ─── Fetch product ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (id) {
-      // Check if product exists in products array
-      const productInStore = products.find((p) => p._id === id);
-      // Check if currentProduct matches the id
-      const currentProductMatches = currentProduct && currentProduct._id === id;
-
-      // If product not in store and currentProduct doesn't match, fetch it
-      if (!productInStore && !currentProductMatches) {
-        dispatch(fetchProductById(id));
-      } else if (productInStore || currentProductMatches) {
-        setLoading(false);
-      }
+    if (!id) return;
+    const inStore = products.find((p) => p._id === id);
+    const currentMatches = currentProduct && currentProduct._id === id;
+    if (!inStore && !currentMatches) {
+      dispatch(fetchProductById(id));
+    } else {
+      setLoading(false);
     }
   }, [id, products, currentProduct, dispatch]);
 
-  //  Update loading state based on productLoading
   useEffect(() => {
-    if (productLoading) {
-      setLoading(true);
-    } else if (product) {
-      setLoading(false);
-    }
+    if (productLoading) setLoading(true);
+    else if (product) setLoading(false);
   }, [productLoading, product]);
 
-  // Fetch categories and subcategories only if not loaded
+  // ─── Fetch categories / subcategories ───────────────────────────────────────
   useEffect(() => {
-    if (!categories || categories.length === 0) {
-      dispatch(fetchCategories());
-    }
-    if (!subCategories || subCategories.length === 0) {
-      dispatch(fetchSubCategories());
-    }
+    if (!categories?.length) dispatch(fetchCategories());
+    if (!subCategories?.length) dispatch(fetchSubCategories());
   }, [dispatch, categories, subCategories]);
 
-  const calculateDiscount = () => {
-    const { price, originalPrice } = formData;
-    if (!price || !originalPrice || originalPrice >= price) return 0;
-    // Discount = ((Price - OriginalPrice) / Price) * 100
-    // Since originalPrice < price, this shows the discount percentage
-    const discount = ((price - originalPrice) / price) * 100;
-    return Math.round(discount);
-  };
-
-  // 🟢 Populate product data
+  // ─── Populate form ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (product && product._id === id) {
-      setFormData({
-        name: product.name || "",
-        price: product.price || "",
-        originalPrice: product.originalPrice || "",
-        category:
-          product.category?._id ||
-          product.category?.id ||
-          (typeof product.category === "string" ? product.category : "") ||
-          "",
-        subCategory:
-          product.subCategory?._id ||
-          product.subCategory?.id ||
-          (typeof product.subCategory === "string"
-            ? product.subCategory
-            : "") ||
-          "",
-        discount: product.discount || "",
-        rating: product.rating || "",
-        productDetails: product.productDetails || "",
-        productDescription: product.productDescription || "",
-      });
+    if (!product || product._id !== id) return;
 
-      const updatedSizes = sizeVariants.map((defaultSize) => {
-        const existing = product.sizes?.find(
-          (s) => s.size === defaultSize.size,
-        );
-        return existing
-          ? { ...defaultSize, stock: existing.stock || 0 }
-          : defaultSize;
-      });
-      setSizeVariants(updatedSizes);
-
-      if (product.img?.length) {
-        setExistingImages(product.img);
-        setImagePreview(product.img);
-      }
-      setLoading(false);
-    }
-  }, [product, id]);
-
-  // 🔹 Input handlers
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
-  };
-
-  const handleSizeChange = (index, value) => {
-    const updatedSizes = [...sizeVariants];
-    updatedSizes[index].stock = value === "" ? 0 : parseInt(value);
-    setSizeVariants(updatedSizes);
-  };
-
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    const maxFileSize = 50 * 1024 * 1024; // 50MB
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    const currentTotalImages = images.length;
-
-    // Clear previous image errors
-    if (errors.images) {
-      setErrors({ ...errors, images: "" });
-    }
-
-    // Validate file count
-    if (currentTotalImages + files.length > MAX_IMAGES) {
-      toast.error(
-        `Maximum ${MAX_IMAGES} images allowed. You can upload ${Math.max(
-          0,
-          MAX_IMAGES - currentTotalImages,
-        )} more.`,
-      );
-      return;
-    }
-
-    // Validate each file
-    const validFiles = [];
-    const invalidFiles = [];
-
-    files.forEach((file) => {
-      // Check file type
-      if (!allowedTypes.includes(file.type)) {
-        invalidFiles.push(
-          `${file.name} - Invalid file type. Only JPEG, PNG, and WebP are allowed.`,
-        );
-        return;
-      }
-
-      // Check file size
-      if (file.size > maxFileSize) {
-        invalidFiles.push(
-          `${file.name} - File too large. Maximum size is 50MB.`,
-        );
-        return;
-      }
-
-      validFiles.push(file);
+    setFormData({
+      name:               product.name               || "",
+      price:              product.price         !== undefined ? product.price         : "",
+      originalPrice:      product.originalPrice !== undefined ? product.originalPrice : "",
+      category:
+        product.category?._id ||
+        product.category?.id  ||
+        (typeof product.category === "string" ? product.category : "") ||
+        "",
+      subCategory:
+        product.subCategory?._id ||
+        product.subCategory?.id  ||
+        (typeof product.subCategory === "string" ? product.subCategory : "") ||
+        "",
+      rating:             product.rating !== undefined ? product.rating : "",
+      productDetails:     product.productDetails      || "",
+      productDescription: product.productDescription  || "",
     });
 
-    // Show errors for invalid files
-    if (invalidFiles.length > 0) {
-      toast.error(invalidFiles.join("\n"));
+    setSizeVariants((prev) =>
+      prev.map((defaultSize) => {
+        const found = product.sizes?.find((s) => s.size === defaultSize.size);
+        return found ? { ...defaultSize, stock: found.stock || 0 } : defaultSize;
+      })
+    );
+
+    if (product.img?.length) {
+      setSavedImages(product.img);
     }
 
-    // Add valid files
-    if (validFiles.length > 0) {
-      // Always replace old images when selecting new files in edit mode
-      const mergedRemovedImages = [
-        ...new Set([...removedImages, ...existingImages]),
-      ];
-      setRemovedImages(mergedRemovedImages);
-      setExistingImages([]);
+    setLoading(false);
+  }, [product, id]);
 
-      setImages(validFiles);
-      const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
-      setImagePreview(newPreviews);
-      toast.success("Old images removed and replaced with new images");
-    }
-
-    // Allow selecting the same file again if needed
-    e.target.value = "";
-  };
-
-  const removeExistingImage = (index) => {
-    const removedImage = existingImages[index];
-    setRemovedImages([...removedImages, removedImage]);
-    const newExisting = existingImages.filter((_, i) => i !== index);
-    setExistingImages(newExisting);
-    const newPreviews = imagePreview.filter((_, i) => i !== index);
-    setImagePreview(newPreviews);
-  };
-
-  const removeNewImage = (index) => {
-    const actualIndex = existingImages.length + index;
-    const newImages = images.filter((_, i) => i !== index);
-    const newPreviews = imagePreview.filter((_, i) => i !== actualIndex);
-    setImages(newImages);
-    setImagePreview(newPreviews);
+  // ─── Helpers ────────────────────────────────────────────────────────────────
+  const calculateDiscount = () => {
+    const p  = Number(formData.price);
+    const op = Number(formData.originalPrice);
+    if (!p || !op || op >= p) return 0;
+    return Math.round(((p - op) / p) * 100);
   };
 
   const calculateTotalQuantity = () =>
-    sizeVariants.reduce((total, v) => total + (parseInt(v.stock) || 0), 0);
+    sizeVariants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
 
-  // 🧮 Auto discount calculation
-  const calculatedDiscount =
-    formData.originalPrice &&
-    formData.price &&
-    formData.originalPrice < formData.price
-      ? Math.round(
-          ((formData.price - formData.originalPrice) / formData.price) * 100,
-        )
-      : 0;
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Validate product name
-    if (!formData.name || formData.name.trim() === "") {
-      newErrors.name = "Product name is required";
-    } else if (formData.name.trim().length < 3) {
-      newErrors.name = "Product name must be at least 3 characters";
-    } else if (formData.name.trim().length > 200) {
-      newErrors.name = "Product name must be less than 200 characters";
-    }
-
-    // Validate category
-    if (!formData.category || formData.category.trim() === "") {
-      newErrors.category = "Category is required";
-    }
-
-    // Validate subCategory
-    if (!formData.subCategory || formData.subCategory.trim() === "") {
-      newErrors.subCategory = "SubCategory is required";
-    }
-
-    // Validate price
-    if (!formData.price || formData.price === "") {
-      newErrors.price = "Price is required";
-    } else {
-      const price = parseFloat(formData.price);
-      if (isNaN(price) || price <= 0) {
-        newErrors.price = "Price must be a positive number";
-      } else if (price > 1000000) {
-        newErrors.price = "Price cannot exceed ₹10,00,000";
+  // ─── Input handlers ─────────────────────────────────────────────────────────
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+      if (name === "category") {
+        updated.subCategory = "";
       }
-    }
-
-    // Validate original price (if provided)
-    if (formData.originalPrice && formData.originalPrice !== "") {
-      const originalPrice = parseFloat(formData.originalPrice);
-      const price = parseFloat(formData.price) || 0;
-
-      if (isNaN(originalPrice) || originalPrice <= 0) {
-        newErrors.originalPrice = "Original price must be a positive number";
-      } else if (originalPrice >= price) {
-        newErrors.originalPrice =
-          "Original price must be less than selling price";
-      } else if (originalPrice > 1000000) {
-        newErrors.originalPrice = "Original price cannot exceed ₹10,00,000";
-      }
-    }
-
-    // Validate images - at least one image required (existing or new)
-    if (existingImages.length === 0 && images.length === 0) {
-      newErrors.images = "At least one image is required";
-    } else if (existingImages.length + images.length > MAX_IMAGES) {
-      newErrors.images = `Maximum ${MAX_IMAGES} total images allowed`;
-    }
-
-    setErrors(newErrors);
-    return {
-      isValid: Object.keys(newErrors).length === 0,
-      formErrors: newErrors,
-    };
+      return updated;
+    });
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // 🔹 Submit Handler
+  const handleSizeChange = (index, value) => {
+    setSizeVariants((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], stock: value === "" ? 0 : parseInt(value) };
+      return updated;
+    });
+  };
+
+  // ─── Image handlers ─────────────────────────────────────────────────────────
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const maxSize      = 50 * 1024 * 1024; // 50 MB
+
+    if (errors.images) setErrors((prev) => ({ ...prev, images: "" }));
+
+    if (files.length > MAX_IMAGES) {
+      toast.error(`Maximum ${MAX_IMAGES} images allowed.`);
+      e.target.value = "";
+      return;
+    }
+
+    const valid   = [];
+    const invalid = [];
+
+    files.forEach((file) => {
+      if (!allowedTypes.includes(file.type)) {
+        invalid.push(`${file.name}: invalid type (JPEG, PNG, WebP only)`);
+      } else if (file.size > maxSize) {
+        invalid.push(`${file.name}: too large (max 50 MB)`);
+      } else {
+        valid.push(file);
+      }
+    });
+
+    if (invalid.length) toast.error(invalid.join("\n"));
+
+    if (valid.length) {
+      setImageChanged(true);
+      setNewImages(valid);
+      toast.success(`${valid.length} new image(s) selected. Will replace saved images on update.`);
+    }
+
+    e.target.value = "";
+  };
+
+  /** Remove a new (unsaved) image. If all removed → revert to saved images. */
+  const removeNewImage = (index) => {
+    const updated = newImages.filter((_, i) => i !== index);
+    if (updated.length === 0) {
+      setImageChanged(false);
+      setNewImages([]);
+      toast("Reverted to original saved images", { icon: "↩️" });
+    } else {
+      setNewImages(updated);
+    }
+  };
+
+  // ─── Validation ─────────────────────────────────────────────────────────────
+  const validateForm = () => {
+    const errs = {};
+
+    if (!formData.name?.trim()) {
+      errs.name = "Product name is required";
+    } else if (formData.name.trim().length < 3) {
+      errs.name = "Product name must be at least 3 characters";
+    } else if (formData.name.trim().length > 200) {
+      errs.name = "Product name must be less than 200 characters";
+    }
+
+    if (!formData.category?.trim())    errs.category    = "Category is required";
+    if (!formData.subCategory?.trim()) errs.subCategory = "SubCategory is required";
+
+    if (!formData.price) {
+      errs.price = "Price is required";
+    } else {
+      const p = parseFloat(formData.price);
+      if (isNaN(p) || p <= 0)   errs.price = "Price must be a positive number";
+      else if (p > 1_000_000)   errs.price = "Price cannot exceed ₹10,00,000";
+    }
+
+    if (formData.originalPrice) {
+      const op = parseFloat(formData.originalPrice);
+      const p  = parseFloat(formData.price) || 0;
+      if (isNaN(op) || op <= 0) errs.originalPrice = "Original price must be positive";
+      else if (op >= p)         errs.originalPrice = "Original price must be less than selling price";
+      else if (op > 1_000_000)  errs.originalPrice = "Original price cannot exceed ₹10,00,000";
+    }
+
+    if (!formData.rating) {
+      errs.rating = "Rating is required";
+    } else {
+      const r = parseFloat(formData.rating);
+      if (isNaN(r) || r < 0) errs.rating = "Rating must be a positive number";
+      else if (r > 5)        errs.rating = "Rating must be 5 or less";
+    }
+
+    if (imageChanged && newImages.length === 0) {
+      errs.images = "Please select at least one image";
+    } else if (!imageChanged && savedImages.length === 0) {
+      errs.images = "At least one image is required";
+    }
+
+    setErrors(errs);
+    return { isValid: Object.keys(errs).length === 0, formErrors: errs };
+  };
+
+  // ─── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate form
+    console.log(formData);
     const { isValid, formErrors } = validateForm();
     if (!isValid) {
       toast.error("⚠️ Please fix the errors in the form");
-      // Scroll to first error
-      const firstErrorField = Object.keys(formErrors)[0];
-      if (firstErrorField) {
-        const element = document.querySelector(`[name="${firstErrorField}"]`);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "center" });
-          element.focus();
-        }
+      const first = Object.keys(formErrors)[0];
+      if (first) {
+        const el = document.querySelector(`[name="${first}"]`);
+        if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.focus(); }
       }
       return;
     }
 
-    const sizesArray = sizeVariants.map((variant) => ({
-      size: variant.size,
-      stock: Number(variant.stock) || 0,
+    const sizesArray = sizeVariants.map((v) => ({
+      size: v.size,
+      stock: Number(v.stock) || 0,
     }));
 
     const submitData = new FormData();
-    // Match AddProduct order exactly to avoid backend validation issues
-    submitData.append("name", formData.name.trim());
-    submitData.append("price", formData.price);
-    submitData.append("category", formData.category);
-    submitData.append("subCategory", formData.subCategory || "");
-    submitData.append("originalPrice", formData.originalPrice || "");
-    // Do NOT send discount field; backend does not allow it
-    submitData.append("productDetails", formData.productDetails || "");
+    submitData.append("name",               formData.name.trim());
+    submitData.append("price",              formData.price);
+    submitData.append("category",           formData.category);
+    submitData.append("subCategory",        formData.subCategory || "");
+    submitData.append("originalPrice",      formData.originalPrice || "");
+    submitData.append("productDetails",     formData.productDetails || "");
     submitData.append("productDescription", formData.productDescription || "");
-    submitData.append("quantity", calculateTotalQuantity().toString());
+    submitData.append("rating",             formData.rating);
+    submitData.append("quantity",           calculateTotalQuantity().toString());
 
-    // Send null if no stock is provided for any size, as seen in working Postman request
     const hasStock = sizesArray.some((s) => s.stock > 0);
     submitData.append("sizes", hasStock ? JSON.stringify(sizesArray) : "null");
 
-    // Only send images if backend expects them for update (remove if not allowed)
-    if (images.length > 0) {
-      images.forEach((img) => submitData.append("img", img));
+    // ✅ FIXED: send replaceImages flag so backend knows to swap out old images
+    if (imageChanged) {
+      newImages.forEach((img) => submitData.append("img", img));
+      submitData.append("replaceImages", "true");
     }
-    
-    if (existingImages.length > 0) {
-      existingImages.forEach((img) => submitData.append("existingImages", img));
-    }
-
-    if (removedImages.length > 0) {
-      removedImages.forEach((img) => submitData.append("removedImages", img));
-    }
-
-    // Debug log before submission
-    console.log("--- Final FormData Before Submission ---");
-    for (let pair of submitData.entries()) {
-      const value = pair[1];
-      if (value instanceof File) {
-        console.log(`${pair[0]}: [File] ${value.name} (${value.size} bytes)`);
-      } else {
-        console.log(`${pair[0]}: ${value}`);
-      }
-    }
+    // else: no files sent → backend keeps existing DB images untouched
+    console.log("Submit Data:", submitData);
     try {
-      const res = await dispatch(
-        updateProduct({ id, productData: submitData }),
-      );
-      console.log("2", res);
+      const res = await dispatch(updateProduct({ id, productData: submitData }));
       if (res.type.endsWith("fulfilled")) {
         toast.success("✅ Product updated successfully!");
         setTimeout(() => navigate("/admin/products"), 600);
       } else {
-        toast.error("❌ Error: " + (res.payload || "Failed to update product"));
+        toast.error("❌ " + (res.payload || "Failed to update product"));
       }
     } catch (err) {
       toast.error(err.message || "Something went wrong!");
     }
   };
 
+  // ─── Loading / not-found ────────────────────────────────────────────────────
   if (loading)
     return (
       <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
@@ -434,83 +333,71 @@ const EditProduct = () => {
       </div>
     );
 
+  // Current previews to render
+  const imagePreviews = imageChanged
+    ? newImages.map((f) => URL.createObjectURL(f))
+    : savedImages;
+
+  // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        Edit Products - {product.name}
+        Edit Product — {product.name}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 🟢 Basic Information */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
-            Basic Information
-          </h3>
 
+        {/* Basic Information */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Basic Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
             <div className="md:col-span-2">
-              <label className="block font-semibold mb-1 text-gray-700">
-                Product Name *
-              </label>
+              <label className="block font-semibold mb-1 text-gray-700">Product Name *</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.name ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? "border-red-500" : "border-gray-300"}`}
                 required
               />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
             </div>
 
             <div>
-              <label className="block font-semibold mb-1 text-gray-700">
-                Category *
-              </label>
+              <label className="block font-semibold mb-1 text-gray-700">Category *</label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.category ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.category ? "border-red-500" : "border-gray-300"}`}
                 required
               >
                 <option value="">Select category</option>
-                {loadingCategories && <option>Loading...</option>}
-                {categoryError && <option>Error loading categories</option>}
+                {loadingCategories && <option disabled>Loading...</option>}
+                {categoryError     && <option disabled>Error loading categories</option>}
                 {categories.map((cat) => (
                   <option key={cat._id || cat.id} value={cat._id || cat.id}>
                     {cat.category || cat.name}
                   </option>
                 ))}
               </select>
-              {errors.category && (
-                <p className="text-red-500 text-sm mt-1">{errors.category}</p>
-              )}
+              {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
             </div>
 
-            {/* SubCategory Selection */}
             <div>
-              <label className="block font-semibold mb-1 text-gray-700">
-                SubCategory *
-              </label>
+              <label className="block font-semibold mb-1 text-gray-700">SubCategory *</label>
               <select
                 name="subCategory"
                 value={formData.subCategory}
                 onChange={handleChange}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.subCategory ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.subCategory ? "border-red-500" : "border-gray-300"}`}
                 required
                 disabled={!formData.category}
               >
                 <option value="">Select subcategory</option>
-                {subCategoryLoading && <option>Loading...</option>}
+                {subCategoryLoading && <option disabled>Loading...</option>}
                 {subCategories
                   .filter((sub) => {
                     const catId =
@@ -525,133 +412,80 @@ const EditProduct = () => {
                     </option>
                   ))}
               </select>
-              {errors.subCategory && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.subCategory}
-                </p>
-              )}
+              {errors.subCategory && <p className="text-red-500 text-sm mt-1">{errors.subCategory}</p>}
             </div>
+
           </div>
         </div>
 
-        {/* 🟢 Pricing Section */}
+        {/* Pricing */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
-            Pricing & Rating
-          </h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Pricing</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block font-semibold mb-1 text-gray-700">
-                Price (₹)
-              </label>
+              <label className="block font-semibold mb-1 text-gray-700">Price (₹) *</label>
               <input
                 type="number"
                 name="price"
                 value={formData.price}
                 onChange={handleChange}
-                onKeyDown={(e) => {
-                  if (["e", "E", "+", "-"].includes(e.key)) {
-                    e.preventDefault();
-                  }
-                }}
-                onPaste={(e) => {
-                  if (/[eE+\-]/.test(e.clipboardData.getData("text"))) {
-                    e.preventDefault();
-                  }
-                }}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.price ? "border-red-500" : "border-gray-300"
-                }`}
+                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.price ? "border-red-500" : "border-gray-300"}`}
                 step="0.01"
                 min="0"
                 required
               />
-              {errors.price && (
-                <p className="text-red-500 text-sm mt-1">{errors.price}</p>
-              )}
+              {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
             </div>
+
             <div>
-              <label className="block font-semibold mb-1 text-gray-700">
-                Original Price (₹)
-              </label>
+              <label className="block font-semibold mb-1 text-gray-700">Original Price (₹)</label>
               <input
                 type="number"
                 name="originalPrice"
                 value={formData.originalPrice}
                 onChange={handleChange}
-                onKeyDown={(e) => {
-                  if (["e", "E", "+", "-"].includes(e.key)) {
-                    e.preventDefault();
-                  }
-                }}
-                onPaste={(e) => {
-                  if (/[eE+\-]/.test(e.clipboardData.getData("text"))) {
-                    e.preventDefault();
-                  }
-                }}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.originalPrice ? "border-red-500" : "border-gray-300"
-                }`}
+                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.originalPrice ? "border-red-500" : "border-gray-300"}`}
                 placeholder="0"
                 step="0.01"
                 min="0"
               />
-              {errors.originalPrice && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.originalPrice}
-                </p>
-              )}
+              {errors.originalPrice && <p className="text-red-500 text-sm mt-1">{errors.originalPrice}</p>}
             </div>
-            {formData.originalPrice &&
-              formData.price &&
-              formData.originalPrice < formData.price && (
-                <div className="flex items-center justify-center text-green-700 font-semibold">
-                  💰 {calculateDiscount()}% OFF
-                </div>
-              )}
 
-            {/* <div>
-              <label className="block font-semibold mb-1 text-gray-700">
-                Discount (%)
-              </label>
-              <input
-                type="number"
-                name="discount"
-                value={formData.discount || calculatedDiscount}
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-2 rounded"
-              />
-              {formData.originalPrice && formData.price && (
-                <p className="text-sm text-blue-600 mt-1">
-                  Auto: {calculatedDiscount}% off
-                </p>
-              )}
-            </div> */}
+            {formData.originalPrice && formData.price &&
+              Number(formData.originalPrice) < Number(formData.price) && (
+              <div className="flex items-center justify-center text-green-700 font-semibold text-lg">
+                💰 {calculateDiscount()}% OFF
+              </div>
+            )}
 
-            {/* <div>
-              <label className="block font-semibold mb-1 text-gray-700">
-                Rating
-              </label>
-              <input
-                type="number"
-                name="rating"
-                step="0.1"
-                min="0"
-                max="5"
-                value={formData.rating}
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-2 rounded"
-              />
-            </div> */}
           </div>
         </div>
 
-        {/* 🟢 Sizes */}
+        {/* Rating */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
-            Size & Stock Management
-          </h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Rating *</h3>
+          <input
+            type="number"
+            name="rating"
+            step="0.1"
+            min="0"
+            max="5"
+            value={formData.rating}
+            onChange={handleChange}
+            className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.rating ? "border-red-500" : "border-gray-300"}`}
+            placeholder="Enter rating (0 – 5)"
+            required
+          />
+          {errors.rating && <p className="text-red-500 text-sm mt-1">{errors.rating}</p>}
+        </div>
+
+        {/* Size & Stock */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Size & Stock Management</h3>
           {sizeVariants.map((variant, index) => (
             <div key={variant.size} className="flex gap-3 items-center mb-3">
               <input
@@ -663,16 +497,7 @@ const EditProduct = () => {
               <input
                 type="number"
                 value={variant.stock}
-                onKeyDown={(e) => {
-                  if (["e", "E", "+", "-"].includes(e.key)) {
-                    e.preventDefault();
-                  }
-                }}
-                onPaste={(e) => {
-                  if (/[eE+\-]/.test(e.clipboardData.getData("text"))) {
-                    e.preventDefault();
-                  }
-                }}
+                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
                 onChange={(e) => handleSizeChange(index, e.target.value)}
                 className="w-2/3 border border-gray-300 p-2 rounded"
                 placeholder="Stock quantity"
@@ -682,84 +507,95 @@ const EditProduct = () => {
           ))}
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
             <p className="text-sm font-semibold text-blue-800">
-              Total Quantity:{" "}
-              <span className="text-lg">{calculateTotalQuantity()}</span> units
+              Total Quantity: <span className="text-lg">{calculateTotalQuantity()}</span> units
             </p>
           </div>
         </div>
 
-        {/* 🟢 Images */}
+        {/* Images */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
-            Product Images
-          </h3>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleImageChange}
-            className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <p className="text-sm text-gray-500 mt-2">
-            Upload new images (max {MAX_IMAGES} total). Supported formats: JPEG,
-            PNG, WebP.
-          </p>
-          {errors.images && (
-            <p className="text-red-500 text-sm mt-1">{errors.images}</p>
-          )}
+          <h3 className="text-lg font-semibold mb-2 text-gray-700">Product Images</h3>
 
-          {imagePreview.length > 0 && (
+          {/* Status banner */}
+          <div className={`mb-3 text-sm px-3 py-2 rounded font-medium ${
+            imageChanged
+              ? "bg-yellow-50 border border-yellow-300 text-yellow-800"
+              : "bg-green-50 border border-green-300 text-green-800"
+          }`}>
+            {imageChanged
+              ? `🔄 ${newImages.length} new image(s) selected — will replace saved images on update`
+              : `✅ Using ${savedImages.length} saved image(s) — select new files below to replace all`}
+          </div>
+
+          {/* File picker */}
+          <label className="flex items-center gap-2 cursor-pointer w-fit px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+            <ImagePlus size={16} />
+            {imageChanged ? "Choose Different Images" : "Replace Images"}
+            <input
+              type="file"
+              multiple
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+          </label>
+
+          <p className="text-xs text-gray-500 mt-2">
+            Max {MAX_IMAGES} images · JPEG, PNG, WebP · Max 50 MB each.
+            Selecting new files <strong>replaces ALL</strong> current images on save.
+          </p>
+
+          {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images}</p>}
+
+          {/* Preview grid */}
+          {imagePreviews.length > 0 && (
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-              {imagePreview.map((preview, index) => {
-                const isExisting = index < existingImages.length;
-                return (
-                  <div key={index} className="relative group">
-                    <img
-                      src={preview}
-                      alt={`Preview ${index}`}
-                      className="w-full h-32 object-cover rounded border"
-                    />
+              {imagePreviews.map((preview, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-32 object-cover rounded border"
+                  />
+                  <span className={`absolute bottom-1 left-1 text-xs px-1.5 py-0.5 rounded font-medium ${
+                    imageChanged ? "bg-green-500 text-white" : "bg-blue-500 text-white"
+                  }`}>
+                    {imageChanged ? "New" : "Saved"}
+                  </span>
+                  {/* Only allow removing new images; saved images kept by backend */}
+                  {imageChanged && (
                     <button
                       type="button"
-                      onClick={() =>
-                        isExisting
-                          ? removeExistingImage(index)
-                          : removeNewImage(index - existingImages.length)
-                      }
+                      onClick={() => removeNewImage(index)}
                       className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 transition opacity-0 group-hover:opacity-100"
+                      title="Remove image"
                     >
                       <X size={16} />
                     </button>
-                  </div>
-                );
-              })}
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>
 
-        {/* 🟢 Details & Description */}
+        {/* Product Information */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
-            Product Information
-          </h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Product Information</h3>
           <div className="space-y-4">
             <div>
-              <label className="block font-semibold mb-1 text-gray-700">
-                Product Details
-              </label>
+              <label className="block font-semibold mb-1 text-gray-700">Product Details</label>
               <textarea
                 name="productDetails"
                 value={formData.productDetails}
                 onChange={handleChange}
-                className="w-full border border-gray-300 p-2 rounded"
+                className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
                 placeholder="Key features, specifications, materials, etc."
                 rows="3"
               />
             </div>
             <div>
-              <label className="block font-semibold mb-1 text-gray-700">
-                Product Description
-              </label>
+              <label className="block font-semibold mb-1 text-gray-700">Product Description</label>
               <textarea
                 name="productDescription"
                 value={formData.productDescription}
@@ -772,11 +608,11 @@ const EditProduct = () => {
           </div>
         </div>
 
-        {/* 🟢 Submit Buttons */}
+        {/* Submit */}
         <div className="flex gap-3">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-60"
             disabled={status === "loading"}
           >
             {status === "loading" ? "Updating..." : "Update Product"}
@@ -789,6 +625,7 @@ const EditProduct = () => {
             Cancel
           </button>
         </div>
+
       </form>
     </div>
   );

@@ -55,7 +55,7 @@ export const updateProduct = createAsyncThunk(
   async ({ id, productData }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("adminToken");
-      console.log("Updating product with ID:", id);
+      console.log("data",productData);
       if (productData instanceof FormData) {
         console.log("Updated data (FormData contents):");
         for (let pair of productData.entries()) {
@@ -73,10 +73,12 @@ export const updateProduct = createAsyncThunk(
         },
       };
 
-      // For FormData, axios will automatically set Content-Type with boundary
-      // Just ensure we don't override it with "application/json"
+      // Axios automatically handles FormData if we DON'T set Content-Type manually
       if (!isFormData) {
         config.headers["Content-Type"] = "application/json";
+      } else {
+        // Just in case some global interceptor added it
+        delete config.headers["Content-Type"];
       }
 
       const res = await API.put(`/products/${id}`, productData, config);

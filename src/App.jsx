@@ -4,6 +4,7 @@ import "./index.css";
 import { Toaster } from "react-hot-toast";
 import ScrollToTop from './components/common/ScrollToTop';
 import AllRoutes from '../src/routes/Routes';
+import AuthModal from "./components/User/AuthModal";
 
 const App = () => {
 
@@ -13,6 +14,7 @@ const App = () => {
         <ScrollToTop />
 
           <AllRoutes />
+          <AuthModal />
            <Toaster
         position="bottom-right"   // 👈 this sets the toast position
         reverseOrder={false}

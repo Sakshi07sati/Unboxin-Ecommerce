@@ -19,7 +19,9 @@ const AddProduct = () => {
   const loadingCategories = useSelector(selectCategoryLoading);
   const categoryError = useSelector(selectCategoryError);
   const { status, error } = useSelector((state) => state.products);
-  const { subCategories, loading: subCategoryLoading } = useSelector((state) => state.subCategory);
+  const { subCategories, loading: subCategoryLoading } = useSelector(
+    (state) => state.subCategory,
+  );
 
   const [formData, setFormData] = useState({
     name: "",
@@ -29,6 +31,7 @@ const AddProduct = () => {
     originalPrice: "",
     productDetails: "",
     productDescription: "",
+    rating: "",
   });
 
   useEffect(() => {
@@ -186,6 +189,18 @@ const AddProduct = () => {
       }
     }
 
+    // Validate rating
+    if (!formData.rating || formData.rating === "") {
+      newErrors.rating = "Rating is required";
+    } else {
+      const rating = parseFloat(formData.rating);
+      if (isNaN(rating) || rating < 0) {
+        newErrors.rating = "Rating must be a positive number";
+      } else if (rating > 5) {
+        newErrors.rating = "Rating must be 5 or less";
+      }
+    }
+
     // Validate images
     if (images.length === 0) {
       newErrors.images = "At least one image is required";
@@ -228,8 +243,9 @@ const AddProduct = () => {
     submitData.append("originalPrice", formData.originalPrice || "");
     submitData.append("productDetails", formData.productDetails || "");
     submitData.append("productDescription", formData.productDescription || "");
+    submitData.append("rating", formData.rating);
     submitData.append("quantity", calculateTotalQuantity().toString());
-    const hasStock = sizesArray.some(s => s.stock > 0);
+    const hasStock = sizesArray.some((s) => s.stock > 0);
     submitData.append("sizes", hasStock ? JSON.stringify(sizesArray) : "null");
 
     images.forEach((image) => submitData.append("img", image));
@@ -281,8 +297,9 @@ const AddProduct = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.name ? "border-red-500" : "border-gray-300"
+                }`}
                 placeholder="Enter product name"
                 required
               />
@@ -301,8 +318,9 @@ const AddProduct = () => {
                 value={formData.category}
                 onChange={handleChange}
                 className={`w-full p-3 rounded border bg-white text-gray-700 shadow-sm
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.category ? "border-red-500" : "border-gray-300"
-                  }`}
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.category ? "border-red-500" : "border-gray-300"
+                }`}
                 required
               >
                 <option value="">-- Select a category --</option>
@@ -333,8 +351,9 @@ const AddProduct = () => {
                 value={formData.subCategory}
                 onChange={handleChange}
                 className={`w-full p-3 rounded border bg-white text-gray-700 shadow-sm
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.subCategory ? "border-red-500" : "border-gray-300"
-                  }`}
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.subCategory ? "border-red-500" : "border-gray-300"
+                }`}
                 required
                 disabled={!formData.category}
               >
@@ -345,7 +364,10 @@ const AddProduct = () => {
                 {subCategories
                   .filter((sub) => {
                     if (!sub.category) return false;
-                    const catId = typeof sub.category === "object" ? (sub.category?._id || sub.category?.id) : sub.category;
+                    const catId =
+                      typeof sub.category === "object"
+                        ? sub.category?._id || sub.category?.id
+                        : sub.category;
                     return catId === formData.category;
                   })
                   .map((sub) => (
@@ -355,10 +377,14 @@ const AddProduct = () => {
                   ))}
               </select>
               {errors.subCategory && (
-                <p className="text-red-500 text-sm mt-1">{errors.subCategory}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.subCategory}
+                </p>
               )}
               {!formData.category && (
-                <p className="text-xs text-blue-600 mt-1">Please select a category first</p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Please select a category first
+                </p>
               )}
             </div>
           </div>
@@ -366,7 +392,9 @@ const AddProduct = () => {
 
         {/* Pricing Section */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Pricing</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">
+            Pricing & Ratings
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* <div>
               <label className="block font-semibold mb-1 text-gray-700">
@@ -408,8 +436,9 @@ const AddProduct = () => {
                     e.preventDefault();
                   }
                 }}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.price ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.price ? "border-red-500" : "border-gray-300"
+                }`}
                 placeholder="0.00"
                 // step="0.01"
                 min="0"
@@ -439,8 +468,9 @@ const AddProduct = () => {
                     e.preventDefault();
                   }
                 }}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.originalPrice ? "border-red-500" : "border-gray-300"
-                  }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.originalPrice ? "border-red-500" : "border-gray-300"
+                }`}
                 placeholder="0"
                 min="0"
               />
@@ -460,7 +490,28 @@ const AddProduct = () => {
               )}
           </div>
         </div>
-
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">
+            Ratings *
+          </h3>
+          <div className="flex-1">
+            <input
+              type="number"
+              name="rating"
+              value={formData.rating}
+              onChange={handleChange}
+              min="0"
+              max="5"
+              step="0.1"
+              className={`w-full border border-gray-300 p-2 rounded text-gray-700 ${errors.rating ? "border-red-500" : ""}`}
+              placeholder="Enter rating (max 5)"
+              required
+            />
+            {errors.rating && (
+              <p className="text-red-500 text-sm mt-1">{errors.rating}</p>
+            )}
+          </div>
+        </div>
         {/* Size & Stock */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="text-lg font-semibold mb-4 text-gray-700">

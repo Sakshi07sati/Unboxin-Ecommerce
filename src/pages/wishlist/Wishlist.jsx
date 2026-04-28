@@ -146,9 +146,9 @@ const EmptyWishlist = ({ onBrowse }) => (
   >
     {/* Animated heart */}
     <div className="relative mb-8">
-      <div className="absolute top-[6px] left-[6px] w-24 h-24 bg-black rounded-full" />
-      <div className="relative w-24 h-24 bg-primary rounded-full border-2 border-black flex items-center justify-center">
-        <Heart size={40} className="text-black" strokeWidth={2.5} />
+      <div className="absolute rounded-full" />
+      <div className="relative w-24 h-24 bg-primary rounded-full  flex items-center justify-center">
+        <Heart size={40} className="text-white" strokeWidth={2.5} />
       </div>
     </div>
 
@@ -164,7 +164,7 @@ const EmptyWishlist = ({ onBrowse }) => (
       <div className="absolute " />
       <button
         onClick={onBrowse}
-        className="relative bg-primary text-black font-black text-base px-8 py-3 rounded-xl  font-mono flex items-center gap-3 hover:translate-x-[5px] hover:translate-y-[5px] transition-transform duration-150"
+        className="relative bg-primary text-white font-semibold text-base px-8 py-3 rounded-xl flex items-center gap-3  duration-150"
       >
         Browse Products
         <ArrowRight size={18} />
@@ -196,7 +196,7 @@ const Wishlist = () => {
               <div className="relative hidden sm:block">
                 <div className="absolute" />
                 <div className="relative w-10 h-10 bg-primary rounded-lg  flex items-center justify-center">
-                  <Heart size={18} className="text-black" strokeWidth={2.5} />
+                  <Heart size={18} className="text-white" strokeWidth={2.5} />
                 </div>
               </div>
               <div>
