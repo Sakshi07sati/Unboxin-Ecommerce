@@ -1,14 +1,13 @@
-// productSlice.js - UPDATED
 import { createSlice } from "@reduxjs/toolkit";
-import { 
-  addProduct, 
-  deleteProduct, 
-  fetchProducts, 
+import {
+  addProduct,
+  deleteProduct,
+  fetchProducts,
   updateProduct,
   fetchPublicProducts,
   fetchProductById,
-  fetchProductsByCategory, 
-  fetchProductsBySection
+  fetchProductsByCategory,
+  fetchProductsBySection,
 } from "./productThunks";
 
 const productSlice = createSlice({
@@ -17,23 +16,20 @@ const productSlice = createSlice({
     products: [],
     currentProduct: null,
     status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
-    loading: false, // Specific loading state for single product
+    loading: false,
     error: null,
     totalProducts: 0,
     totalPages: 1,
     currentPage: 1,
-    // NEW: Track if products have been loaded at least once
     hasLoaded: false,
-    // NEW: Track retry attempts and last error time to prevent infinite retries
     retryCount: 0,
     lastErrorTime: null,
-    errorCooldown: 30000, // 30 seconds cooldown after error (in milliseconds)
+    errorCooldown: 30000,
   },
   reducers: {
     clearCurrentProduct: (state) => {
       state.currentProduct = null;
     },
-    // NEW: Reset loading state
     resetProductsState: (state) => {
       state.products = [];
       state.status = "idle";
@@ -42,7 +38,6 @@ const productSlice = createSlice({
       state.retryCount = 0;
       state.lastErrorTime = null;
     },
-    // NEW: Reset error state to allow retry
     resetErrorState: (state) => {
       state.error = null;
       state.retryCount = 0;
@@ -50,17 +45,17 @@ const productSlice = createSlice({
       state.status = "idle";
     },
     clearProducts: (state) => {
-    state.products = [];
-    state.hasLoaded = false;
-    state.status = "idle";
-    state.error = null;
-  },
+      state.products = [];
+      state.hasLoaded = false;
+      state.status = "idle";
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
-      // ========================================
-      // EXISTING ADMIN CASES
-      // ========================================
+      // ─────────────────────────────────────────
+      // FETCH ALL PRODUCTS (ADMIN)
+      // ─────────────────────────────────────────
       .addCase(fetchProducts.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -71,7 +66,7 @@ const productSlice = createSlice({
         state.totalProducts = action.payload.totalProducts || 0;
         state.totalPages = action.payload.totalPages || 1;
         state.currentPage = action.payload.currentPage || 1;
-        state.hasLoaded = true; // NEW
+        state.hasLoaded = true;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.status = "failed";
@@ -81,7 +76,9 @@ const productSlice = createSlice({
         state.lastErrorTime = Date.now();
       })
 
-      // Add product (ADMIN)
+      // ─────────────────────────────────────────
+      // ADD PRODUCT (ADMIN)
+      // ─────────────────────────────────────────
       .addCase(addProduct.pending, (state) => {
         state.status = "loading";
       })
@@ -96,60 +93,64 @@ const productSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Update product (ADMIN)
+      // ─────────────────────────────────────────
+      // UPDATE PRODUCT (ADMIN)
+      // ─────────────────────────────────────────
       .addCase(updateProduct.pending, (state) => {
         state.status = "loading";
         state.error = null;
       })
       .addCase(updateProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        if (!action.payload || !action.payload._id) return;
-        
-        const index = state.products.findIndex(
-          (product) => product._id === action.payload._id
-        );
+
+        const updated = action.payload;
+        if (!updated || !updated._id) return;
+
+        // FIX #2: Update products array
+        const index = state.products.findIndex((p) => p._id === updated._id);
         if (index !== -1) {
-          state.products[index] = action.payload;
+          state.products[index] = updated;
         } else {
-          state.products.push(action.payload);
+          state.products.push(updated);
         }
+
+        // FIX #2: Also update currentProduct so EditProduct shows fresh data
+        state.currentProduct = updated;
       })
       .addCase(updateProduct.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
       })
 
-      // Delete product (ADMIN)
+      // ─────────────────────────────────────────
+      // DELETE PRODUCT (ADMIN)
+      // ─────────────────────────────────────────
       .addCase(deleteProduct.pending, (state) => {
         state.status = "loading";
         state.error = null;
       })
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = state.products.filter(
-          (p) => p._id !== action.payload
-        );
+        state.products = state.products.filter((p) => p._id !== action.payload);
       })
       .addCase(deleteProduct.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
       })
 
-      // ========================================
-      // PUBLIC SHOP PAGE CASES - UPDATED
-      // ========================================
-      
-      // Fetch public products (SHOP PAGE)
+      // ─────────────────────────────────────────
+      // FETCH PUBLIC PRODUCTS (SHOP PAGE)
+      // ─────────────────────────────────────────
       .addCase(fetchPublicProducts.pending, (state) => {
         state.status = "loading";
         state.error = null;
-        state.hasLoaded = false; // NEW
+        state.hasLoaded = false;
       })
       .addCase(fetchPublicProducts.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.products = action.payload;
         state.hasLoaded = true;
-        state.retryCount = 0; // Reset retry count on success
+        state.retryCount = 0;
         state.lastErrorTime = null;
       })
       .addCase(fetchPublicProducts.rejected, (state, action) => {
@@ -160,17 +161,19 @@ const productSlice = createSlice({
         state.lastErrorTime = Date.now();
       })
 
-      // Fetch products by category (SHOP PAGE)
+      // ─────────────────────────────────────────
+      // FETCH PRODUCTS BY CATEGORY (SHOP PAGE)
+      // ─────────────────────────────────────────
       .addCase(fetchProductsByCategory.pending, (state) => {
         state.status = "loading";
         state.error = null;
-        state.hasLoaded = false; // NEW
+        state.hasLoaded = false;
       })
       .addCase(fetchProductsByCategory.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.products = action.payload;
         state.hasLoaded = true;
-        state.retryCount = 0; // Reset retry count on success
+        state.retryCount = 0;
         state.lastErrorTime = null;
       })
       .addCase(fetchProductsByCategory.rejected, (state, action) => {
@@ -181,7 +184,9 @@ const productSlice = createSlice({
         state.lastErrorTime = Date.now();
       })
 
-      // Fetch single product by ID
+      // ─────────────────────────────────────────
+      // FETCH SINGLE PRODUCT BY ID
+      // ─────────────────────────────────────────
       .addCase(fetchProductById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -199,16 +204,18 @@ const productSlice = createSlice({
         state.lastErrorTime = Date.now();
       })
 
-      // Fetch products by section
+      // ─────────────────────────────────────────
+      // FETCH PRODUCTS BY SECTION
+      // ─────────────────────────────────────────
       .addCase(fetchProductsBySection.pending, (state) => {
         state.status = "loading";
-        state.hasLoaded = false; // NEW
+        state.hasLoaded = false;
       })
       .addCase(fetchProductsBySection.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.products = action.payload;
         state.hasLoaded = true;
-        state.retryCount = 0; // Reset retry count on success
+        state.retryCount = 0;
         state.lastErrorTime = null;
       })
       .addCase(fetchProductsBySection.rejected, (state, action) => {
@@ -218,10 +225,14 @@ const productSlice = createSlice({
         state.retryCount += 1;
         state.lastErrorTime = Date.now();
       });
-
-      
   },
 });
 
-export const { clearCurrentProduct, resetProductsState, resetErrorState, clearProducts  } = productSlice.actions;
+export const {
+  clearCurrentProduct,
+  resetProductsState,
+  resetErrorState,
+  clearProducts,
+} = productSlice.actions;
+
 export default productSlice.reducer;

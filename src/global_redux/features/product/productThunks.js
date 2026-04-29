@@ -10,14 +10,13 @@ export const fetchProducts = createAsyncThunk(
       const res = await API.get(`/products?page=${page}&limit=${limit}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       return res.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || "Failed to fetch products",
+        err.response?.data?.message || "Failed to fetch products"
       );
     }
-  },
+  }
 );
 
 export const addProduct = createAsyncThunk(
@@ -25,7 +24,6 @@ export const addProduct = createAsyncThunk(
   async (productData, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("adminToken");
-      console.log("Product Data:", productData);
       const isFormData = productData instanceof FormData;
 
       const config = {
@@ -38,33 +36,20 @@ export const addProduct = createAsyncThunk(
       };
 
       const res = await API.post("/products", productData, config);
-      console.log("Add response:", res.data);
       return res.data.product || res.data.data || res.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || "Failed to add product",
+        err.response?.data?.message || "Failed to add product"
       );
     }
-  },
+  }
 );
 
-// FIXED: Update a product - using API instance instead of axios
-// In your productThunks.js
 export const updateProduct = createAsyncThunk(
   "products/updateProduct",
   async ({ id, productData }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("adminToken");
-      console.log("data",productData);
-      if (productData instanceof FormData) {
-        console.log("Updated data (FormData contents):");
-        for (let pair of productData.entries()) {
-          console.log(`${pair[0]}:`, pair[1]);
-        }
-      } else {
-        console.log("Updated data:", productData);
-      }
-
       const isFormData = productData instanceof FormData;
 
       const config = {
@@ -73,19 +58,21 @@ export const updateProduct = createAsyncThunk(
         },
       };
 
-      // Axios automatically handles FormData if we DON'T set Content-Type manually
+      // Axios automatically handles FormData — don't set Content-Type manually
       if (!isFormData) {
         config.headers["Content-Type"] = "application/json";
       } else {
-        // Just in case some global interceptor added it
+        // Remove in case any global interceptor added it
         delete config.headers["Content-Type"];
       }
 
       const res = await API.put(`/products/${id}`, productData, config);
-      console.log("Update response:", res.data);
-      return res.data.product || res.data.data || res.data;
+
+      // FIX #1: Backend returns { success, message, data: updatedProduct }
+      // Extract correctly — res.data.data is the updated product
+      const updatedProduct = res.data.data || res.data.product || res.data;
+      return updatedProduct;
     } catch (err) {
-      console.error("Update error:", err);
       const validationErrors = err.response?.data?.errors;
       const normalizedValidationMessage =
         Array.isArray(validationErrors) && validationErrors.length > 0
@@ -93,7 +80,7 @@ export const updateProduct = createAsyncThunk(
               .map((e) =>
                 typeof e === "string"
                   ? e
-                  : e?.msg || e?.message || e?.path || JSON.stringify(e),
+                  : e?.msg || e?.message || e?.path || JSON.stringify(e)
               )
               .join(", ")
           : "";
@@ -107,7 +94,7 @@ export const updateProduct = createAsyncThunk(
 
       return rejectWithValue(errorMessage);
     }
-  },
+  }
 );
 
 export const deleteProduct = createAsyncThunk(
@@ -115,37 +102,32 @@ export const deleteProduct = createAsyncThunk(
   async (productId, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("adminToken");
-
-      const res = await API.delete(`/products/${productId}`, {
+      await API.delete(`/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(res);
-      return productId; // return the deleted product ID for updating Redux state
+      return productId; // return deleted ID to remove from Redux state
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || "Failed to delete product",
+        err.response?.data?.message || "Failed to delete product"
       );
     }
-  },
+  }
 );
 
 export const fetchPublicProducts = createAsyncThunk(
   "products/fetchPublicProducts",
   async (_, { rejectWithValue }) => {
     try {
-      // NO TOKEN NEEDED - Public endpoint
       const res = await API.get("/products");
-      // Handle different possible response structures
       return res.data.data || res.data.products || res.data;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || "Failed to fetch products",
+        err.response?.data?.message || "Failed to fetch products"
       );
     }
-  },
+  }
 );
 
-// ===== OPTIONAL: Add if you want category filtering from backend =====
 export const fetchProductsByCategory = createAsyncThunk(
   "products/fetchProductsByCategory",
   async (category, { rejectWithValue }) => {
@@ -154,71 +136,36 @@ export const fetchProductsByCategory = createAsyncThunk(
       return res.data.products;
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || "Failed to fetch products",
+        err.response?.data?.message || "Failed to fetch products"
       );
     }
-  },
+  }
 );
 
-// ===== OPTIONAL: Add for single product page =====
 export const fetchProductById = createAsyncThunk(
   "products/fetchProductById",
   async (id, { rejectWithValue }) => {
     try {
-      console.log("API call for product ID:", id); // Check this
       const res = await API.get(`/products/${id}`);
-      console.log("API Response:", res.data);
-
       return res.data.product || res.data.data || res.data;
     } catch (err) {
-      console.error("API Error:", err.response || err);
       return rejectWithValue(
-        err.response?.data?.message || err.message || "Failed to fetch product",
+        err.response?.data?.message || err.message || "Failed to fetch product"
       );
     }
-  },
+  }
 );
 
-// productThunks.js
 export const fetchProductsBySection = createAsyncThunk(
   "products/fetchProductsBySection",
   async (section, { rejectWithValue }) => {
     try {
-      console.log("Fetching products for section:", section);
-      const res = await API.get(`/section/${section}`); // ✅ correct backend URL
-      console.log("API Response for section:", res.data);
-
-      // ✅ Extract array from res.data.data
+      const res = await API.get(`/section/${section}`);
       return res.data.data || [];
     } catch (err) {
-      console.error("API Error:", err.response || err);
       return rejectWithValue(
-        err.response?.data?.message || "Failed to fetch products by section",
+        err.response?.data?.message || "Failed to fetch products by section"
       );
     }
-  },
+  }
 );
-
-// export const fetchProductsByCategory = createAsyncThunk(
-//   "products/fetchProductsByCategory",
-//   async (categoryName, { rejectWithValue }) => {
-//     try {
-//       console.log("API call for category:", categoryName);
-//       const res = await API.get(`/category/${categoryName}`);
-//       console.log("API Response:", res.data);
-
-//       // Assuming API returns an array or object with a 'products' key
-//       const products = res.data.products || res.data;
-//       console.log("Returning category products:", products);
-
-//       return products;
-//     } catch (err) {
-//       console.error("API Error (category):", err.response || err);
-//       return rejectWithValue(
-//         err.response?.data?.message ||
-//           err.message ||
-//           "Failed to fetch products by category"
-//       );
-//     }
-//   }
-// );

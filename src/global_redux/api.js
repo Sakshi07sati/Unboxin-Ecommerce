@@ -2,10 +2,18 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const API = axios.create({
-  baseURL: `${(import.meta.env.VITE_API_URL || "http://localhost:5000/")}`, // Added /api prefix to match backend routes
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: `${(import.meta.env.VITE_API_URL || "http://localhost:5000/")}`,
+});
+
+API.interceptors.request.use((config) => {
+
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+  } else {
+    config.headers["Content-Type"] = "application/json";
+  }
+
+  return config;
 });
 
 // Store and logout function references - will be set after store is created

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   updateProduct,
   fetchProductById,
-} from "../../../global_redux/features/product/productThunks"; // ✅ FIXED: correct import path
+} from "../../../global_redux/features/product/productThunks";
 import { fetchCategories } from "../../../global_redux/features/category/categoryThunks";
 import {
   selectCategories,
@@ -21,6 +21,9 @@ const EditProduct = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  // Prevents re-populating form after Redux store updates with new product data post-submit
+  const isFormPopulated = useRef(false);
+
   const {
     status,
     products,
@@ -31,7 +34,7 @@ const EditProduct = () => {
   const loadingCategories = useSelector(selectCategoryLoading);
   const categoryError = useSelector(selectCategoryError);
   const { subCategories, loading: subCategoryLoading } = useSelector(
-    (state) => state.subCategory,
+    (state) => state.subCategory
   );
 
   const productFromStore = products.find((p) => p._id === id);
@@ -58,14 +61,29 @@ const EditProduct = () => {
     { size: "XXL", stock: 0 },
   ]);
 
-  const [savedImages, setSavedImages] = useState([]);   // server URLs (display only)
-  const [newImages, setNewImages]     = useState([]);   // File objects to upload
+  const [savedImages, setSavedImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+  const [newImagePreviews, setNewImagePreviews] = useState([]);
   const [imageChanged, setImageChanged] = useState(false);
 
   const [loading, setLoading] = useState(true);
-  const [errors, setErrors]   = useState({});
+  const [errors, setErrors] = useState({});
 
-  // ─── Fetch product ──────────────────────────────────────────────────────────
+  // ─── Generate & revoke object URLs (no memory leak) ──────────────────────────
+  useEffect(() => {
+    if (!imageChanged || newImages.length === 0) {
+      setNewImagePreviews([]);
+      return;
+    }
+    const urls = newImages.map((f) => URL.createObjectURL(f));
+    setNewImagePreviews(urls);
+
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [newImages, imageChanged]);
+
+  // ─── Fetch product if not in store ───────────────────────────────────────────
   useEffect(() => {
     if (!id) return;
     const inStore = products.find((p) => p._id === id);
@@ -82,33 +100,41 @@ const EditProduct = () => {
     else if (product) setLoading(false);
   }, [productLoading, product]);
 
-  // ─── Fetch categories / subcategories ───────────────────────────────────────
+  // ─── Fetch categories / subcategories ────────────────────────────────────────
   useEffect(() => {
     if (!categories?.length) dispatch(fetchCategories());
     if (!subCategories?.length) dispatch(fetchSubCategories());
   }, [dispatch, categories, subCategories]);
 
-  // ─── Populate form ──────────────────────────────────────────────────────────
+  // ─── Populate form — only ONCE on first load ─────────────────────────────────
+  // ROOT FIX: isFormPopulated ref prevents this from re-running after submit
+  // Problem was: submit → Redux updates product → useEffect re-runs →
+  // savedImages resets to new URLs BUT imageChanged stays true →
+  // imagePreviews still shows old blob URLs instead of new Cloudinary URLs
   useEffect(() => {
     if (!product || product._id !== id) return;
 
+    // Already populated — skip to avoid overwriting user's current form state
+    if (isFormPopulated.current) return;
+
     setFormData({
-      name:               product.name               || "",
-      price:              product.price         !== undefined ? product.price         : "",
-      originalPrice:      product.originalPrice !== undefined ? product.originalPrice : "",
+      name: product.name || "",
+      price: product.price !== undefined ? product.price : "",
+      originalPrice:
+        product.originalPrice !== undefined ? product.originalPrice : "",
       category:
         product.category?._id ||
-        product.category?.id  ||
+        product.category?.id ||
         (typeof product.category === "string" ? product.category : "") ||
         "",
       subCategory:
         product.subCategory?._id ||
-        product.subCategory?.id  ||
+        product.subCategory?.id ||
         (typeof product.subCategory === "string" ? product.subCategory : "") ||
         "",
-      rating:             product.rating !== undefined ? product.rating : "",
-      productDetails:     product.productDetails      || "",
-      productDescription: product.productDescription  || "",
+      rating: product.rating !== undefined ? product.rating : "",
+      productDetails: product.productDetails || "",
+      productDescription: product.productDescription || "",
     });
 
     setSizeVariants((prev) =>
@@ -118,32 +144,29 @@ const EditProduct = () => {
       })
     );
 
-    if (product.img?.length) {
-      setSavedImages(product.img);
-    }
+    setSavedImages(product.img?.length ? product.img : []);
 
+    isFormPopulated.current = true;
     setLoading(false);
   }, [product, id]);
 
-  // ─── Helpers ────────────────────────────────────────────────────────────────
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
   const calculateDiscount = () => {
-    const p  = Number(formData.price);
-    const op = Number(formData.originalPrice);
-    if (!p || !op || op >= p) return 0;
-    return Math.round(((p - op) / p) * 100);
+    const selling = Number(formData.price);
+    const mrp = Number(formData.originalPrice);
+    if (!selling || !mrp || mrp <= selling) return 0;
+    return Math.round(((mrp - selling) / mrp) * 100);
   };
 
   const calculateTotalQuantity = () =>
     sizeVariants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
 
-  // ─── Input handlers ─────────────────────────────────────────────────────────
+  // ─── Input handlers ──────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => {
       const updated = { ...prev, [name]: value };
-      if (name === "category") {
-        updated.subCategory = "";
-      }
+      if (name === "category") updated.subCategory = "";
       return updated;
     });
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -152,18 +175,21 @@ const EditProduct = () => {
   const handleSizeChange = (index, value) => {
     setSizeVariants((prev) => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], stock: value === "" ? 0 : parseInt(value) };
+      updated[index] = {
+        ...updated[index],
+        stock: value === "" ? 0 : parseInt(value),
+      };
       return updated;
     });
   };
 
-  // ─── Image handlers ─────────────────────────────────────────────────────────
+  // ─── Image handlers ──────────────────────────────────────────────────────────
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    const maxSize      = 50 * 1024 * 1024; // 50 MB
+    const maxSize = 50 * 1024 * 1024;
 
     if (errors.images) setErrors((prev) => ({ ...prev, images: "" }));
 
@@ -173,7 +199,7 @@ const EditProduct = () => {
       return;
     }
 
-    const valid   = [];
+    const valid = [];
     const invalid = [];
 
     files.forEach((file) => {
@@ -191,25 +217,27 @@ const EditProduct = () => {
     if (valid.length) {
       setImageChanged(true);
       setNewImages(valid);
-      toast.success(`${valid.length} new image(s) selected. Will replace saved images on update.`);
+      toast.success(
+        `${valid.length} new image(s) selected. Will replace saved images on update.`
+      );
     }
 
     e.target.value = "";
   };
 
-  /** Remove a new (unsaved) image. If all removed → revert to saved images. */
   const removeNewImage = (index) => {
     const updated = newImages.filter((_, i) => i !== index);
     if (updated.length === 0) {
       setImageChanged(false);
       setNewImages([]);
+      setNewImagePreviews([]);
       toast("Reverted to original saved images", { icon: "↩️" });
     } else {
       setNewImages(updated);
     }
   };
 
-  // ─── Validation ─────────────────────────────────────────────────────────────
+  // ─── Validation ──────────────────────────────────────────────────────────────
   const validateForm = () => {
     const errs = {};
 
@@ -221,23 +249,27 @@ const EditProduct = () => {
       errs.name = "Product name must be less than 200 characters";
     }
 
-    if (!formData.category?.trim())    errs.category    = "Category is required";
+    if (!formData.category?.trim()) errs.category = "Category is required";
     if (!formData.subCategory?.trim()) errs.subCategory = "SubCategory is required";
 
     if (!formData.price) {
       errs.price = "Price is required";
     } else {
       const p = parseFloat(formData.price);
-      if (isNaN(p) || p <= 0)   errs.price = "Price must be a positive number";
-      else if (p > 1_000_000)   errs.price = "Price cannot exceed ₹10,00,000";
+      if (isNaN(p) || p <= 0) errs.price = "Price must be a positive number";
+      else if (p > 1_000_000) errs.price = "Price cannot exceed ₹10,00,000";
     }
 
     if (formData.originalPrice) {
       const op = parseFloat(formData.originalPrice);
-      const p  = parseFloat(formData.price) || 0;
-      if (isNaN(op) || op <= 0) errs.originalPrice = "Original price must be positive";
-      else if (op >= p)         errs.originalPrice = "Original price must be less than selling price";
-      else if (op > 1_000_000)  errs.originalPrice = "Original price cannot exceed ₹10,00,000";
+      const p = parseFloat(formData.price) || 0;
+      if (isNaN(op) || op <= 0)
+        errs.originalPrice = "Original price must be positive";
+      else if (op <= p)
+        errs.originalPrice =
+          "Original price (MRP) must be greater than selling price";
+      else if (op > 1_000_000)
+        errs.originalPrice = "Original price cannot exceed ₹10,00,000";
     }
 
     if (!formData.rating) {
@@ -245,7 +277,7 @@ const EditProduct = () => {
     } else {
       const r = parseFloat(formData.rating);
       if (isNaN(r) || r < 0) errs.rating = "Rating must be a positive number";
-      else if (r > 5)        errs.rating = "Rating must be 5 or less";
+      else if (r > 5) errs.rating = "Rating must be 5 or less";
     }
 
     if (imageChanged && newImages.length === 0) {
@@ -258,17 +290,19 @@ const EditProduct = () => {
     return { isValid: Object.keys(errs).length === 0, formErrors: errs };
   };
 
-  // ─── Submit ──────────────────────────────────────────────────────────────────
+  // ─── Submit ───────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
     const { isValid, formErrors } = validateForm();
     if (!isValid) {
       toast.error("⚠️ Please fix the errors in the form");
       const first = Object.keys(formErrors)[0];
       if (first) {
         const el = document.querySelector(`[name="${first}"]`);
-        if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.focus(); }
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.focus();
+        }
       }
       return;
     }
@@ -279,29 +313,39 @@ const EditProduct = () => {
     }));
 
     const submitData = new FormData();
-    submitData.append("name",               formData.name.trim());
-    submitData.append("price",              formData.price);
-    submitData.append("category",           formData.category);
-    submitData.append("subCategory",        formData.subCategory || "");
-    submitData.append("originalPrice",      formData.originalPrice || "");
-    submitData.append("productDetails",     formData.productDetails || "");
+    submitData.append("name", formData.name.trim());
+    submitData.append("price", formData.price);
+    submitData.append("category", formData.category);
+    submitData.append("subCategory", formData.subCategory || "");
+    submitData.append("originalPrice", formData.originalPrice || "");
+    submitData.append("productDetails", formData.productDetails || "");
     submitData.append("productDescription", formData.productDescription || "");
-    submitData.append("rating",             formData.rating);
-    submitData.append("quantity",           calculateTotalQuantity().toString());
+    submitData.append("rating", formData.rating);
+    submitData.append("quantity", calculateTotalQuantity().toString());
 
     const hasStock = sizesArray.some((s) => s.stock > 0);
     submitData.append("sizes", hasStock ? JSON.stringify(sizesArray) : "null");
 
-    // ✅ FIXED: send replaceImages flag so backend knows to swap out old images
     if (imageChanged) {
       newImages.forEach((img) => submitData.append("img", img));
       submitData.append("replaceImages", "true");
     }
-    // else: no files sent → backend keeps existing DB images untouched
-    console.log("Submit Data:", submitData);
+
     try {
       const res = await dispatch(updateProduct({ id, productData: submitData }));
       if (res.type.endsWith("fulfilled")) {
+
+        // ROOT FIX: Manually reset image state with new Cloudinary URLs from response
+        // This ensures savedImages shows new images immediately without waiting for
+        // useEffect to re-run (which was causing the stale preview bug)
+        const updatedProduct = res.payload;
+        if (updatedProduct?.img?.length) {
+          setSavedImages(updatedProduct.img);
+        }
+        setImageChanged(false);
+        setNewImages([]);
+        setNewImagePreviews([]);
+
         toast.success("✅ Product updated successfully!");
         setTimeout(() => navigate("/admin/products"), 600);
       } else {
@@ -312,7 +356,7 @@ const EditProduct = () => {
     }
   };
 
-  // ─── Loading / not-found ────────────────────────────────────────────────────
+  // ─── Loading / not-found ──────────────────────────────────────────────────────
   if (loading)
     return (
       <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
@@ -333,12 +377,9 @@ const EditProduct = () => {
       </div>
     );
 
-  // Current previews to render
-  const imagePreviews = imageChanged
-    ? newImages.map((f) => URL.createObjectURL(f))
-    : savedImages;
+  const imagePreviews = imageChanged ? newImagePreviews : savedImages;
 
-  // ─── Render ─────────────────────────────────────────────────────────────────
+  // ─── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
@@ -359,10 +400,14 @@ const EditProduct = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? "border-red-500" : "border-gray-300"}`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.name ? "border-red-500" : "border-gray-300"
+                }`}
                 required
               />
-              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
             </div>
 
             <div>
@@ -371,19 +416,25 @@ const EditProduct = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.category ? "border-red-500" : "border-gray-300"}`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.category ? "border-red-500" : "border-gray-300"
+                }`}
                 required
               >
                 <option value="">Select category</option>
                 {loadingCategories && <option disabled>Loading...</option>}
-                {categoryError     && <option disabled>Error loading categories</option>}
+                {categoryError && (
+                  <option disabled>Error loading categories</option>
+                )}
                 {categories.map((cat) => (
                   <option key={cat._id || cat.id} value={cat._id || cat.id}>
                     {cat.category || cat.name}
                   </option>
                 ))}
               </select>
-              {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
+              {errors.category && (
+                <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+              )}
             </div>
 
             <div>
@@ -392,7 +443,9 @@ const EditProduct = () => {
                 name="subCategory"
                 value={formData.subCategory}
                 onChange={handleChange}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.subCategory ? "border-red-500" : "border-gray-300"}`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.subCategory ? "border-red-500" : "border-gray-300"
+                }`}
                 required
                 disabled={!formData.category}
               >
@@ -412,7 +465,9 @@ const EditProduct = () => {
                     </option>
                   ))}
               </select>
-              {errors.subCategory && <p className="text-red-500 text-sm mt-1">{errors.subCategory}</p>}
+              {errors.subCategory && (
+                <p className="text-red-500 text-sm mt-1">{errors.subCategory}</p>
+              )}
             </div>
 
           </div>
@@ -424,43 +479,60 @@ const EditProduct = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
             <div>
-              <label className="block font-semibold mb-1 text-gray-700">Price (₹) *</label>
+              <label className="block font-semibold mb-1 text-gray-700">
+                Selling Price (₹) *
+              </label>
               <input
                 type="number"
                 name="price"
                 value={formData.price}
                 onChange={handleChange}
-                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.price ? "border-red-500" : "border-gray-300"}`}
+                onKeyDown={(e) =>
+                  ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
+                }
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.price ? "border-red-500" : "border-gray-300"
+                }`}
                 step="0.01"
                 min="0"
                 required
               />
-              {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
+              {errors.price && (
+                <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+              )}
             </div>
 
             <div>
-              <label className="block font-semibold mb-1 text-gray-700">Original Price (₹)</label>
+              <label className="block font-semibold mb-1 text-gray-700">
+                MRP / Original Price (₹)
+              </label>
               <input
                 type="number"
                 name="originalPrice"
                 value={formData.originalPrice}
                 onChange={handleChange}
-                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.originalPrice ? "border-red-500" : "border-gray-300"}`}
+                onKeyDown={(e) =>
+                  ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
+                }
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.originalPrice ? "border-red-500" : "border-gray-300"
+                }`}
                 placeholder="0"
                 step="0.01"
                 min="0"
               />
-              {errors.originalPrice && <p className="text-red-500 text-sm mt-1">{errors.originalPrice}</p>}
+              {errors.originalPrice && (
+                <p className="text-red-500 text-sm mt-1">{errors.originalPrice}</p>
+              )}
             </div>
 
-            {formData.originalPrice && formData.price &&
-              Number(formData.originalPrice) < Number(formData.price) && (
-              <div className="flex items-center justify-center text-green-700 font-semibold text-lg">
-                💰 {calculateDiscount()}% OFF
-              </div>
-            )}
+            {formData.originalPrice &&
+              formData.price &&
+              Number(formData.originalPrice) > Number(formData.price) && (
+                <div className="flex items-center justify-center text-green-700 font-semibold text-lg">
+                  💰 {calculateDiscount()}% OFF
+                </div>
+              )}
 
           </div>
         </div>
@@ -476,16 +548,22 @@ const EditProduct = () => {
             max="5"
             value={formData.rating}
             onChange={handleChange}
-            className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.rating ? "border-red-500" : "border-gray-300"}`}
+            className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.rating ? "border-red-500" : "border-gray-300"
+            }`}
             placeholder="Enter rating (0 – 5)"
             required
           />
-          {errors.rating && <p className="text-red-500 text-sm mt-1">{errors.rating}</p>}
+          {errors.rating && (
+            <p className="text-red-500 text-sm mt-1">{errors.rating}</p>
+          )}
         </div>
 
         {/* Size & Stock */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">Size & Stock Management</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">
+            Size & Stock Management
+          </h3>
           {sizeVariants.map((variant, index) => (
             <div key={variant.size} className="flex gap-3 items-center mb-3">
               <input
@@ -497,7 +575,9 @@ const EditProduct = () => {
               <input
                 type="number"
                 value={variant.stock}
-                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+                onKeyDown={(e) =>
+                  ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
+                }
                 onChange={(e) => handleSizeChange(index, e.target.value)}
                 className="w-2/3 border border-gray-300 p-2 rounded"
                 placeholder="Stock quantity"
@@ -507,7 +587,8 @@ const EditProduct = () => {
           ))}
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
             <p className="text-sm font-semibold text-blue-800">
-              Total Quantity: <span className="text-lg">{calculateTotalQuantity()}</span> units
+              Total Quantity:{" "}
+              <span className="text-lg">{calculateTotalQuantity()}</span> units
             </p>
           </div>
         </div>
@@ -516,18 +597,18 @@ const EditProduct = () => {
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="text-lg font-semibold mb-2 text-gray-700">Product Images</h3>
 
-          {/* Status banner */}
-          <div className={`mb-3 text-sm px-3 py-2 rounded font-medium ${
-            imageChanged
-              ? "bg-yellow-50 border border-yellow-300 text-yellow-800"
-              : "bg-green-50 border border-green-300 text-green-800"
-          }`}>
+          <div
+            className={`mb-3 text-sm px-3 py-2 rounded font-medium ${
+              imageChanged
+                ? "bg-yellow-50 border border-yellow-300 text-yellow-800"
+                : "bg-green-50 border border-green-300 text-green-800"
+            }`}
+          >
             {imageChanged
               ? `🔄 ${newImages.length} new image(s) selected — will replace saved images on update`
               : `✅ Using ${savedImages.length} saved image(s) — select new files below to replace all`}
           </div>
 
-          {/* File picker */}
           <label className="flex items-center gap-2 cursor-pointer w-fit px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
             <ImagePlus size={16} />
             {imageChanged ? "Choose Different Images" : "Replace Images"}
@@ -545,9 +626,10 @@ const EditProduct = () => {
             Selecting new files <strong>replaces ALL</strong> current images on save.
           </p>
 
-          {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images}</p>}
+          {errors.images && (
+            <p className="text-red-500 text-sm mt-1">{errors.images}</p>
+          )}
 
-          {/* Preview grid */}
           {imagePreviews.length > 0 && (
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
               {imagePreviews.map((preview, index) => (
@@ -557,12 +639,15 @@ const EditProduct = () => {
                     alt={`Preview ${index + 1}`}
                     className="w-full h-32 object-cover rounded border"
                   />
-                  <span className={`absolute bottom-1 left-1 text-xs px-1.5 py-0.5 rounded font-medium ${
-                    imageChanged ? "bg-green-500 text-white" : "bg-blue-500 text-white"
-                  }`}>
+                  <span
+                    className={`absolute bottom-1 left-1 text-xs px-1.5 py-0.5 rounded font-medium ${
+                      imageChanged
+                        ? "bg-green-500 text-white"
+                        : "bg-blue-500 text-white"
+                    }`}
+                  >
                     {imageChanged ? "New" : "Saved"}
                   </span>
-                  {/* Only allow removing new images; saved images kept by backend */}
                   {imageChanged && (
                     <button
                       type="button"
