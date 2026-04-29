@@ -68,7 +68,7 @@ const FeatureProduct = () => {
                     <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,_rgba(236,72,153,0.08),_transparent_45%)]" />
                     <div className="mx-auto max-w-[1400px] px-4">
                       <div className="mb-5 flex flex-col  justify-between gap-4  md:flex-row md:p-2">
-                        <div className="text-left px-3">
+                        <div className="text-left px-1">
                           <h3 className="text-xl md:text-2xl font-bold  text-slate-900">
                             {activeSubCategoryId || activeCategoryId ? "Filtered Results" : "Featured Products"}
                           </h3>

@@ -160,16 +160,14 @@ const SectionCarousel = ({ sectionId, sectionName, productIds }) => {
   }
 
   return (
-    <div className="mx-auto w-full px-4 py-10 md:px-10 md:py-14">
+    <div className="mx-auto w-full px-4 py-10 md:px-7 md:py-14">
       {/* Section Title */}
       <div className="mb-7 flex flex-col items-center justify-between gap-3 md:mb-10 md:flex-row">
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary/80">
-            Featured Collection
-          </p>
-          <h2 className="text-center text-3xl font-extrabold tracking-tight text-slate-900 md:text-left md:text-5xl">
+           
+          <h3 className="text-xl md:text-2xl font-bold  text-slate-900">
             {formatSectionName(sectionName)}
-          </h2>
+          </h3>
         </div>
         <button
           onClick={() => handleExploreMore(sectionName)}
@@ -188,7 +186,7 @@ const SectionCarousel = ({ sectionId, sectionName, productIds }) => {
           breakpoints={{
             320: { slidesPerView: 1 },
             640: { slidesPerView: 2 },
-            1024: { slidesPerView: 3 },
+            1024: { slidesPerView: 4 },
             1280: { slidesPerView: 4 },
           }}
         >

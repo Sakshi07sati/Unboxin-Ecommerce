@@ -115,7 +115,7 @@ export default function ProductCategory({
         </div>
       </div>
 
-      <style>{`
+      <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
