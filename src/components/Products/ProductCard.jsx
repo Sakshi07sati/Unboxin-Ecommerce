@@ -102,7 +102,8 @@ export default function ProductCard({ product }) {
       <button
         onClick={(e) => {
           e.stopPropagation();
-          const firstSize = product.sizes?.[0];
+          const validSizes = product.sizes?.filter(s => s.size && s.size !== "null" && s.size !== "") || [];
+          const firstSize = validSizes[0];
           dispatch(
             addToCart({
               productId: product._id,
@@ -112,7 +113,7 @@ export default function ProductCard({ product }) {
               image: product.img?.[0],
               size: firstSize?.size || "OS",
               maxStock: firstSize?.stock || 10,
-              sizes: product.sizes || [],
+              sizes: validSizes,
               category: product.category?._id || product.category || product.categoryId,
               subCategory: product.subCategory?._id || product.subCategory || product.subCategoryId,
             })

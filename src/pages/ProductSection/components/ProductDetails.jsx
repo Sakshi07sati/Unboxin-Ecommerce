@@ -123,9 +123,9 @@ const ProductDetails = () => {
 
   // Parse sizes if they come as JSON string from backend
   const availableSizes =
-    typeof product.sizes === "string"
+    (typeof product.sizes === "string"
       ? JSON.parse(product.sizes)
-      : product.sizes;
+      : product.sizes)?.filter(s => s.size && s.size !== "null" && s.size !== "") || [];
 
   // Calculate discount percentage
   const discountPercentage =

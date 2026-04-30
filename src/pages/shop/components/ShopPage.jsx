@@ -248,43 +248,48 @@ const ShopPage = () => {
                         )}
                       </div>
 
-                      <div className="mb-4">
-                        <p className="text-xs text-gray-500 font-medium mb-2">
-                          SELECT SIZE:
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {product.sizes?.map((sizeInfo) => {
-                            const isOutOfStock = sizeInfo.stock <= 0;
-                            const isSelected =
-                              selectedSizeForProduct === sizeInfo.size;
+                      {product.sizes && 
+                       product.sizes.filter(s => s.size && s.size !== "null" && s.size !== "").length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-xs text-gray-500 font-medium mb-2">
+                            SELECT SIZE:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {product.sizes
+                              .filter(s => s.size && s.size !== "null" && s.size !== "")
+                              .map((sizeInfo) => {
+                              const isOutOfStock = sizeInfo.stock <= 0;
+                              const isSelected =
+                                selectedSizeForProduct === sizeInfo.size;
 
-                            return (
-                              <button
-                                key={sizeInfo.size}
-                                onClick={(e) =>
-                                  handleSizeSelect(
-                                    product._id,
-                                    sizeInfo.size,
-                                    e
-                                  )
-                                }
-                                disabled={isOutOfStock}
-                                className={`px-3 py-1.5 border rounded-sm text-xs font-semibold transition-all ${
-                                  isSelected
-                                    ? "bg-primary border-black text-black"
-                                    : "border-black text-gray-700 hover:border-gray-400"
-                                } ${
-                                  isOutOfStock
-                                    ? "opacity-50 cursor-not-allowed border-gray-400 text-gray-400"
-                                    : "cursor-pointer"
-                                }`}
-                              >
-                                {sizeInfo.size.toUpperCase()}
-                              </button>
-                            );
-                          })}
+                              return (
+                                <button
+                                  key={sizeInfo.size}
+                                  onClick={(e) =>
+                                    handleSizeSelect(
+                                      product._id,
+                                      sizeInfo.size,
+                                      e
+                                    )
+                                  }
+                                  disabled={isOutOfStock}
+                                  className={`px-3 py-1.5 border rounded-sm text-xs font-semibold transition-all ${
+                                    isSelected
+                                      ? "bg-primary border-black text-black"
+                                      : "border-black text-gray-700 hover:border-gray-400"
+                                  } ${
+                                    isOutOfStock
+                                      ? "opacity-50 cursor-not-allowed border-gray-400 text-gray-400"
+                                      : "cursor-pointer"
+                                  }`}
+                                >
+                                  {sizeInfo.size?.toUpperCase()}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     <div className="relative">
