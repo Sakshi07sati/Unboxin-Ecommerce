@@ -65,7 +65,7 @@ const HeroPage = () => {
         >
           <Link to={`/product/${slides[currentSlide]?.productId?._id || ""}`} >
           <div
-            className="w-full h-full bg-cover bg-center transition-transform duration-[5000ms]"
+            className="w-full h-full bg-contain  transition-transform duration-[5000ms]"
             style={{
               backgroundImage: `url(${slide.img || slide.image})`,
               transform: index === currentSlide ? 'scale(1)' : 'scale(1.1)'
@@ -95,11 +95,11 @@ const HeroPage = () => {
 
       {/* 3. Central Content */}
       <div className="z-10 px-4 max-w-4xl text-white">
-        <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg uppercase tracking-tighter">
-          {slides[currentSlide].heading || slides[currentSlide].title}
+        <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg capitalize tracking-tighter">
+          {slides[currentSlide].heading || ""}
         </h1>
         <p className="text-lg md:text-xl font-light mb-8 drop-shadow-md">
-          {slides[currentSlide].heading ? slides[currentSlide].title : slides[currentSlide].subtitle}
+          { slides[currentSlide].title || "" }
         </p>
         
         {/* <Link to={`/product/${slides[currentSlide]?.productId?._id || ""}`} className="inline-block px-8 py-3 bg-primary text-white rounded-md font-bold hover:scale-105 transition-transform uppercase tracking-widest text-sm"> */}

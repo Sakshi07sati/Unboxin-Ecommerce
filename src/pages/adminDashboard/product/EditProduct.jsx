@@ -247,6 +247,15 @@ const EditProduct = () => {
       errs.name = "Product name must be at least 3 characters";
     } else if (formData.name.trim().length > 200) {
       errs.name = "Product name must be less than 200 characters";
+    } else {
+      // Check for duplicate name (excluding current product)
+      const nameExists = products.some(
+        (p) =>
+          p._id !== id && p.name.toLowerCase() === formData.name.trim().toLowerCase()
+      );
+      if (nameExists) {
+        errs.name = "A product with this name already exists";
+      }
     }
 
     if (!formData.category?.trim()) errs.category = "Category is required";

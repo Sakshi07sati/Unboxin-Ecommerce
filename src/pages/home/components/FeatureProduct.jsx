@@ -2,8 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react'
 import API from "../../../global_redux/api";
 import ProductCategory from '../../../components/Sections/ProductCategory';
 import ProductCard from "../../../components/Products/ProductCard";
-import { FilterX } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { FilterX, ArrowRight } from "lucide-react";
+
 const FeatureProduct = () => {
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
@@ -116,6 +119,20 @@ const FeatureProduct = () => {
                               </div>
                             )}
                           </div>
+                          
+                          {/* View All Button - Only show when NOT filtered and there are more than 8 products */}
+                          {!activeCategoryId && !activeSubCategoryId && products.length > 8 && (
+                            <div className="my-10 flex justify-center">
+                              <button 
+                                onClick={() => navigate('/shop')}
+                                className="group relative flex items-center gap-3 overflow-hidden rounded-xl bg-primary/80 px-8 py-4 text-white shadow-xl transition-all hover:bg-primary/100 hover:shadow-2xl"
+                              >
+                                <span className="relative z-10 font-bold tracking-wide">VIEW ALL PRODUCTS</span>
+                                <ArrowRight className="relative z-10 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-primary/30 to-transparent transition-transform duration-500 group-hover:translate-x-0" />
+                              </button>
+                            </div>
+                          )}
                         </>
                       )}
                     </div>

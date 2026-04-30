@@ -132,11 +132,11 @@ const AddProduct = () => {
   };
 
   const calculateDiscount = () => {
-    const { price, originalPrice } = formData;
-    if (!price || !originalPrice || originalPrice >= price) return 0;
-    // Discount = ((Price - OriginalPrice) / Price) * 100
-    // Since originalPrice < price, this shows the discount percentage
-    const discount = ((price - originalPrice) / price) * 100;
+    const selling = Number(formData.price);
+    const mrp = Number(formData.originalPrice);
+    if (!selling || !mrp || mrp <= selling) return 0;
+    // Discount = ((MRP - SellingPrice) / MRP) * 100
+    const discount = ((mrp - selling) / mrp) * 100;
     return Math.round(discount);
   };
 
@@ -150,6 +150,14 @@ const AddProduct = () => {
       newErrors.name = "Product name must be at least 3 characters";
     } else if (formData.name.trim().length > 200) {
       newErrors.name = "Product name must be less than 200 characters";
+    } else {
+      // Check for duplicate name
+      const nameExists = products.some(
+        (p) => p.name.toLowerCase() === formData.name.trim().toLowerCase(),
+      );
+      if (nameExists) {
+        newErrors.name = "A product with this name already exists";
+      }
     }
 
     // Validate category
@@ -181,9 +189,9 @@ const AddProduct = () => {
 
       if (isNaN(originalPrice) || originalPrice <= 0) {
         newErrors.originalPrice = "Original price must be a positive number";
-      } else if (originalPrice >= price) {
+      } else if (originalPrice <= price) {
         newErrors.originalPrice =
-          "Original price must be less than selling price";
+          "Original price (MRP) must be greater than selling price";
       } else if (originalPrice > 1000000) {
         newErrors.originalPrice = "Original price cannot exceed ₹10,00,000";
       }
@@ -297,9 +305,8 @@ const AddProduct = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.name ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="Enter product name"
                 required
               />
@@ -318,9 +325,8 @@ const AddProduct = () => {
                 value={formData.category}
                 onChange={handleChange}
                 className={`w-full p-3 rounded border bg-white text-gray-700 shadow-sm
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.category ? "border-red-500" : "border-gray-300"
-                }`}
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.category ? "border-red-500" : "border-gray-300"
+                  }`}
                 required
               >
                 <option value="">-- Select a category --</option>
@@ -351,9 +357,8 @@ const AddProduct = () => {
                 value={formData.subCategory}
                 onChange={handleChange}
                 className={`w-full p-3 rounded border bg-white text-gray-700 shadow-sm
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.subCategory ? "border-red-500" : "border-gray-300"
-                }`}
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.subCategory ? "border-red-500" : "border-gray-300"
+                  }`}
                 required
                 disabled={!formData.category}
               >
@@ -419,7 +424,7 @@ const AddProduct = () => {
             </div> */}
             <div>
               <label className="block font-semibold mb-1 text-gray-700">
-                Price (₹) *
+                Selling Price (₹) *
               </label>
               <input
                 type="number"
@@ -436,9 +441,8 @@ const AddProduct = () => {
                     e.preventDefault();
                   }
                 }}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.price ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.price ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="0.00"
                 // step="0.01"
                 min="0"
@@ -451,7 +455,7 @@ const AddProduct = () => {
 
             <div>
               <label className="block font-semibold mb-1 text-gray-700">
-                Original Price (₹)
+                MRP / Original Price (₹)
               </label>
               <input
                 type="number"
@@ -468,9 +472,8 @@ const AddProduct = () => {
                     e.preventDefault();
                   }
                 }}
-                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.originalPrice ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.originalPrice ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="0"
                 min="0"
               />
@@ -483,7 +486,7 @@ const AddProduct = () => {
 
             {formData.originalPrice &&
               formData.price &&
-              formData.originalPrice < formData.price && (
+              Number(formData.originalPrice) > Number(formData.price) && (
                 <div className="flex items-center justify-center text-green-700 font-semibold">
                   💰 {calculateDiscount()}% OFF
                 </div>

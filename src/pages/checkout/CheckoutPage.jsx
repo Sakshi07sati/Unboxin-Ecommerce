@@ -133,7 +133,7 @@ const CheckoutPage = () => {
       // For regular items, use originalPrice or price
       const itemPrice = item.isCustomized
         ? item.price // Customized: price already includes base + customization cost
-        : item.originalPrice || item.price; // Regular: use originalPrice if available, else price
+        : item.price || item.originalPrice; // Regular: use price as selling price, else fallback to originalPrice
 
       const discountPercent = item.discount || 0;
       const discountedPrice = itemPrice - (itemPrice * discountPercent) / 100;
@@ -151,7 +151,7 @@ const CheckoutPage = () => {
         // For regular items, use originalPrice or price
         const itemPrice = item.isCustomized
           ? item.price // Customized: price already includes base + customization cost
-          : item.originalPrice || item.price; // Regular: use originalPrice if available, else price
+          : item.price || item.originalPrice; // Regular: use price as selling price, else fallback to originalPrice
 
         const discountPercent = item.discount || 0;
         const discountedPrice = itemPrice - (itemPrice * discountPercent) / 100;

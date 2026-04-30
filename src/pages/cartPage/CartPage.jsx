@@ -101,7 +101,7 @@ const CartPage = () => {
 
   // Calculate totals with discounted prices
   const subtotal = cartItems.reduce((total, item) => {
-    const itemPrice = item.originalPrice || item.price;
+    const itemPrice = item.price || item.originalPrice;
     return total + itemPrice * item.quantity;
   }, 0);
 
@@ -158,18 +158,20 @@ const CartPage = () => {
                         {/* Product Details */}
                         <div className="flex flex-col justify-between flex-1">
                           <div className="mb-3 sm:mb-0">
-                            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 line-clamp-2">
+                            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 line-clamp-2 capitalize">
                               {item.name || 'Product Name'}
                             </h3>
 
                             {/* Price Display */}
                             <div className="flex items-baseline gap-2 mb-3 sm:mb-4">
                               <span className="text-xl sm:text-2xl font-bold text-gray-900">
-                                ₹{item.originalPrice?.toFixed(0)}
+                                ₹{item.price?.toFixed(0)}
                               </span>
-                              <span className="text-xs sm:text-sm text-gray-500 font-medium line-through">
-                                ₹{item.price}
-                              </span>
+                              {item.originalPrice && (
+                                <span className="text-xs sm:text-sm text-gray-500 font-medium line-through">
+                                  ₹{item.originalPrice}
+                                </span>
+                              )}
                               {item.originalPrice && item.price && item.originalPrice > item.price && (
                                 <span className="text-xs sm:text-xs font-bold text-green-600 bg-gray-100 px-2 py-1 rounded">
                                   {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF

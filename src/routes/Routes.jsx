@@ -34,6 +34,7 @@ import Profile from "../pages/profile/Profile";
 import Contacts from "../pages/contacts/Contacts";
 import About from "../pages/about/About";
 import Wishlist from "../pages/wishlist/Wishlist";
+import Shop from "../pages/shop/Shop";
 
 const AllRoutes = () => {
   return (
@@ -44,6 +45,7 @@ const AllRoutes = () => {
       <Route path="/product-card" element={<ProductCard />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/cart" element={<CartPage />} />
+      <Route path="/shop" element={<Shop />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/products" element={<PublicProducts />} />

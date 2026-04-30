@@ -230,6 +230,7 @@ const ProductDetails = () => {
                       zoomType="hover"
                       zoomPreload={true}
                       hideHint={true}
+                      
                     />
                   </div>
                 ))}
@@ -264,12 +265,12 @@ const ProductDetails = () => {
             {/* ─── Product Info ─── */}
             <div className="flex flex-col lg:w-[45%]">
               {/* Category Badge */}
-              <span className="inline-block w-fit px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full mb-3">
-                {categoryName}
+              <span className="inline-block w-fit px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full mb-3 capitalize">
+                {categoryName} 
               </span>
 
               {/* Product Name */}
-              <h1 className="text-3xl font-bold text-gray-700 mb-2">
+              <h1 className="text-3xl font-bold capitalize text-gray-700 mb-2">
                 {product.name}
               </h1>
 
@@ -322,14 +323,14 @@ const ProductDetails = () => {
                           className={`px-5 py-2 rounded-lg border text-base font-semibold shadow-sm transition-all ${s.stock <= 0
                               ? "text-gray-400 bg-gray-100 border-gray-200 cursor-not-allowed"
                               : selectedSize === s.size
-                                ? "bg-orange-500 text-white border-orange-600 shadow-md"
-                                : "bg-white border-gray-300 hover:border-orange-500"
+                                ? "bg-primary text-white border-primary shadow-md"
+                                : "bg-white border-gray-300 hover:border-primary"
                             }`}
                         >
                           {s.size.toUpperCase()}
                         </button>
                         <p
-                          className={`text-xs mt-1 ${s.stock <= 0 ? "text-gray-400" : "text-orange-600"
+                          className={`text-xs mt-1 ${s.stock <= 0 ? "text-gray-400" : "text-primary"
                             }`}
                         >
                           {s.stock <= 0 ? "Out of stock" : `${s.stock} left`}
@@ -347,7 +348,7 @@ const ProductDetails = () => {
                   <div className="absolute" />
                   <button
                     onClick={handleAddToBag}
-                    className="relative bg-primary w-full  text-white font-bold text-base sm:text-lg md:text-xl px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 font-mono border-gray-300 transition-transform duration-200 ease-in-out flex items-center justify-center gap-2"
+                    className="relative bg-primary w-full  text-white font-bold text-base sm:text-lg md:text-xl px-3 sm:px-4 py-2 sm:py-3 rounded-xl  font-mono  transition-transform duration-200 ease-in-out flex items-center justify-center gap-2"
                   >
                     <ShoppingBag size={18} />
                     Add To Cart
