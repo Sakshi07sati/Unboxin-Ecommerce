@@ -2,19 +2,19 @@ import { useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCategories } from "../../global_redux/features/category/categoryThunks";
-import { selectCategories } from "../../global_redux/features/category/categorySlice";
+// import { selectCategories } from "../../global_redux/features/category/categorySlice";
 import { fetchSubCategories } from "../../global_redux/features/subCategory/subCategoryThunks";
 import { selectSubCategories } from "../../global_redux/features/subCategory/subCategorySlice";
 
 export default function ProductCategory({ 
-  activeCategoryId, 
+  // activeCategoryId, 
   setActiveCategoryId, 
   activeSubCategoryId, 
   setActiveSubCategoryId 
 }) {
   const scrollRef = useRef();
   const dispatch = useDispatch();
-  const categories = useSelector(selectCategories);
+  // const categories = useSelector(selectCategories);
   const subCategories = useSelector(selectSubCategories);
 
   useEffect(() => {

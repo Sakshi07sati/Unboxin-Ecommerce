@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUserProfile,
@@ -16,6 +17,7 @@ import {
   MapPin,
   CheckCircle2,
   Loader2,
+  Package,
 } from "lucide-react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
@@ -210,13 +212,22 @@ const Profile = () => {
                 </div>
 
                 {!isEditing ? (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="bg-white text-blue-600 px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    <span>Edit Profile</span>
-                  </button>
+                  <div className="flex gap-3">
+                    <Link
+                      to="/my-orders"
+                      className="bg-white text-indigo-600 px-6 py-2.5 rounded-xl font-semibold hover:bg-indigo-50 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap border border-indigo-100"
+                    >
+                      <Package className="w-4 h-4" />
+                      <span>My Orders</span>
+                    </Link>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="bg-white text-blue-600 px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      <span>Edit Profile</span>
+                    </button>
+                  </div>
                 ) : (
                   <button
                     onClick={handleCancel}

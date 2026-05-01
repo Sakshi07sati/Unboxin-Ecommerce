@@ -212,7 +212,7 @@ const Navbar = () => {
                   </li>
                   <li>
                     <Link
-                      to="/orders"
+                      to="/my-orders"
                       className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
                       onClick={() => setIsProfileOpen(false)}
                     >

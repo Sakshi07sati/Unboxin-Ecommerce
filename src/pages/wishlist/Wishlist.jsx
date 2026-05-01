@@ -80,7 +80,7 @@ const WishlistCard = ({ product, index }) => {
 
           {/* Discount badge */}
           {discountPct > 0 && (
-            <span className="absolute top-3 left-3 bg-primary text-black text-xs font-black px-2 py-1 rounded-md border border-black font-mono">
+            <span className="absolute top-3 left-3 bg-primary text-white text-xs font-black px-2 py-1 rounded-md  font-mono">
               {discountPct}% OFF
             </span>
           )}

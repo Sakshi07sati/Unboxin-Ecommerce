@@ -30,9 +30,11 @@ export const fetchAllOrders = createAsyncThunk(
   "order/fetchAllOrders",
   async (_, { rejectWithValue }) => {
     try {
-      // Get valid token (admin or sub-admin)
-      // Headers are handled by the axios interceptor in api.js
-      const response = await API.get("/orders");
+      const adminToken = localStorage.getItem("adminToken");
+      const response = await API.get("/orders", {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+      console.log("✅ Fetch All Orders Response:", response.data);
       return response.data; // { success: true, message: "...", orders: [...] }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch orders");
@@ -64,7 +66,10 @@ export const adminUpdateOrderStatus = createAsyncThunk(
   "order/adminUpdateOrderStatus",
   async ({ orderId, status }, { rejectWithValue }) => {
     try {
-      const response = await API.patch(`/orders/${orderId}/status`, { status });
+      const adminToken = localStorage.getItem("adminToken");
+      const response = await API.patch(`/orders/${orderId}/status`, { status }, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
       return response.data; // { success: true, message: "...", order: {...} }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to update order status");
@@ -77,7 +82,10 @@ export const adminUpdateShipment = createAsyncThunk(
   "order/adminUpdateShipment",
   async ({ orderId, shipmentData }, { rejectWithValue }) => {
     try {
-      const response = await API.patch(`/orders/${orderId}/shipment`, shipmentData);
+      const adminToken = localStorage.getItem("adminToken");
+      const response = await API.patch(`/orders/${orderId}/shipment`, shipmentData, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
       return response.data; // { success: true, message: "...", order: {...} }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to update shipment details");
@@ -90,10 +98,26 @@ export const adminDeleteOrder = createAsyncThunk(
   "order/adminDeleteOrder",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await API.delete(`/orders/${orderId}`);
+      const adminToken = localStorage.getItem("adminToken");
+      const response = await API.delete(`/orders/${orderId}`, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
       return { orderId, ...response.data }; // { success: true, message: "...", orderId }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to delete order");
+    }
+  }
+);
+
+// Cancel Order (User)
+export const cancelUserOrder = createAsyncThunk(
+  "order/cancelUserOrder",
+  async (orderId, { rejectWithValue }) => {
+    try {
+      const response = await API.patch(`/orders/${orderId}/cancel`);
+      return response.data; // { success: true, message: "...", order }
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to cancel order");
     }
   }
 );

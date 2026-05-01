@@ -1,4 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllOrders } from "../../../global_redux/features/order/orderThunks";
+import { fetchAllUsers } from "../../../global_redux/features/auth/authThunks";
 import {
   DollarSign,
   ShoppingCart,
@@ -50,128 +53,107 @@ const Dashboard = () => {
     Cancelled: "#ef4444",
   };
 
-  // Filter-specific data
-  const chartDataMap = {
-    today: {
-      sales: [
-        { name: "08:00", sales: 120, revenue: 1520, orders: 2 },
-        { name: "10:00", sales: 450, revenue: 4500, orders: 5 },
-        { name: "12:00", sales: 300, revenue: 3000, orders: 3 },
-        { name: "14:00", sales: 800, revenue: 12000, orders: 12 },
-        { name: "16:00", sales: 600, revenue: 8000, orders: 8 },
-      ],
-      orders: [
-        { name: "08:00", orders: 2 },
-        { name: "10:00", orders: 5 },
-        { name: "12:00", orders: 3 },
-        { name: "14:00", orders: 12 },
-        { name: "16:00", orders: 8 },
-      ],
-      donut: [
-        { name: "Delivered", value: 18, color: STATUS_COLORS.Delivered },
-        { name: "Processing", value: 8, color: STATUS_COLORS.Processing },
-        { name: "Shipped", value: 4, color: STATUS_COLORS.Shipped },
-        { name: "Pending", value: 2, color: STATUS_COLORS.Pending },
-      ],
-      stats: [
-        { name: "Revenue", value: "₹45,200", icon: DollarSign, color: "blue" },
-        { name: "Orders", value: "32", icon: ShoppingCart, color: "green" },
-        { name: "Customers", value: "12", icon: UserCheck, color: "purple" },
-      ]
-    },
-    week: {
-      sales: [
-        { name: "Mon", sales: 12000, revenue: 12000, orders: 15 },
-        { name: "Tue", sales: 15400, revenue: 15400, orders: 22 },
-        { name: "Wed", sales: 9800, revenue: 9800, orders: 10 },
-        { name: "Thu", sales: 21000, revenue: 21000, orders: 35 },
-        { name: "Fri", sales: 18000, revenue: 18000, orders: 28 },
-        { name: "Sat", sales: 25000, revenue: 25000, orders: 42 },
-        { name: "Sun", sales: 22000, revenue: 31000, orders: 38 },
-      ],
-      orders: [
-        { name: "Mon", orders: 15 },
-        { name: "Tue", orders: 22 },
-        { name: "Wed", orders: 10 },
-        { name: "Thu", orders: 35 },
-        { name: "Fri", orders: 28 },
-        { name: "Sat", orders: 42 },
-        { name: "Sun", orders: 38 },
-      ],
-      donut: [
-        { name: "Delivered", value: 110, color: STATUS_COLORS.Delivered },
-        { name: "Processing", value: 45, color: STATUS_COLORS.Processing },
-        { name: "Shipped", value: 25, color: STATUS_COLORS.Shipped },
-        { name: "Pending", value: 10, color: STATUS_COLORS.Pending },
-      ],
-      stats: [
-        { name: "Revenue", value: "₹1,32,200", icon: DollarSign, color: "blue" },
-        { name: "Orders", value: "190", icon: ShoppingCart, color: "green" },
-        { name: "Customers", value: "85", icon: UserCheck, color: "purple" },
-      ]
-    },
-    month: {
-      sales: [
-        { name: "Jan", sales: 450000, revenue: 450000, orders: 210 },
-        { name: "Feb", sales: 380000, revenue: 380000, orders: 185 },
-        { name: "Mar", sales: 520000, revenue: 520000, orders: 245 },
-        { name: "Apr", sales: 480000, revenue: 480000, orders: 220 },
-        { name: "May", sales: 600000, revenue: 600000, orders: 310 },
-      ],
-      orders: [
-        { name: "Jan", orders: 210 },
-        { name: "Feb", orders: 185 },
-        { name: "Mar", orders: 245 },
-        { name: "Apr", orders: 220 },
-        { name: "May", orders: 310 },
-      ],
-      donut: [
-        { name: "Delivered", value: 245, color: STATUS_COLORS.Delivered },
-        { name: "Processing", value: 85, color: STATUS_COLORS.Processing },
-        { name: "Shipped", value: 72, color: STATUS_COLORS.Shipped },
-        { name: "Pending", value: 38, color: STATUS_COLORS.Pending },
-        { name: "Cancelled", value: 10, color: STATUS_COLORS.Cancelled },
-      ],
-      stats: [
-        { name: "Revenue", value: "₹12,50,000", icon: DollarSign, color: "blue" },
-        { name: "Orders", value: "450", icon: ShoppingCart, color: "green" },
-        { name: "Customers", value: "1200", icon: UserCheck, color: "purple" },
-      ]
-    }
-  };
+  const dispatch = useDispatch();
+  const { orders } = useSelector((state) => state.order);
+  const { allUsers } = useSelector((state) => state.auth);
 
-  const currentData = useMemo(() => chartDataMap[filter], [filter]);
+  useEffect(() => {
+    dispatch(fetchAllOrders());
+    dispatch(fetchAllUsers());
+  }, [dispatch]);
 
-  const recentOrders = [
-    {
-      id: "#ORD001",
-      customer: "Rahul Sharma",
-      amount: "₹1,299",
-      status: "Delivered",
-      date: "12 Apr, 2026",
-    },
-    {
-      id: "#ORD002",
-      customer: "Priya Patel",
-      amount: "₹3,499",
-      status: "Processing",
-      date: "13 Apr, 2026",
-    },
-    {
-      id: "#ORD003",
-      customer: "Amit Singh",
-      amount: "₹2,799",
-      status: "Shipped",
-      date: "13 Apr, 2026",
-    },
-    {
-      id: "#ORD004",
-      customer: "test4",
-      amount: "₹1,599",
-      status: "Cancel",
-      date: "14 Apr, 2026",
-    },
-  ];
+  // --- REAL DATA PROCESSING ---
+  const currentData = useMemo(() => {
+    if (!orders) return { sales: [], orders: [], donut: [], stats: [] };
+
+    // 1. Calculate Stats
+    const totalRevenue = orders
+      .filter(o => o.status !== "Cancelled")
+      .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    
+    const stats = [
+      { 
+        name: "Total Revenue", 
+        value: `₹${totalRevenue.toLocaleString("en-IN")}`, 
+        icon: DollarSign, 
+        color: "blue" 
+      },
+      { 
+        name: "Total Orders", 
+        value: orders.length.toString(), 
+        icon: ShoppingCart, 
+        color: "green" 
+      },
+      { 
+        name: "Total Customers", 
+        value: (allUsers?.length || 0).toString(), 
+        icon: UserCheck, 
+        color: "purple" 
+      },
+    ];
+
+    // 2. Calculate Order Distribution (Donut)
+    const statusCounts = orders.reduce((acc, o) => {
+      const s = o.status || "Pending";
+      acc[s] = (acc[s] || 0) + 1;
+      return acc;
+    }, {});
+
+    const donut = Object.keys(STATUS_COLORS).map(status => ({
+      name: status,
+      value: statusCounts[status] || 0,
+      color: STATUS_COLORS[status]
+    })).filter(item => item.value > 0);
+
+    // 3. Calculate Chart Data (Revenue & Orders over time)
+    // We'll group by month for the current year
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const currentYear = new Date().getFullYear();
+    
+    const monthlyData = months.map((month, index) => {
+      const monthOrders = orders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d.getMonth() === index && d.getFullYear() === currentYear;
+      });
+
+      const revenue = monthOrders
+        .filter(o => o.status !== "Cancelled")
+        .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+      return {
+        name: month,
+        sales: revenue, // for line chart
+        revenue: revenue, // for bar chart
+        orders: monthOrders.length
+      };
+    });
+
+    // If "today" filter is selected, we might want to show hours, but for simplicity we'll show months for now.
+    // In a real app, we'd adjust the grouping logic based on the 'filter' state.
+    // For now, let's keep it monthly as it's the most common overview.
+
+    return { sales: monthlyData, orders: monthlyData, donut, stats };
+  }, [orders, allUsers, filter]);
+
+
+
+  // Derive top 5 most recent orders from real Redux data
+  const recentOrders = useMemo(() => {
+    if (!orders || orders.length === 0) return [];
+    
+    return [...orders]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5)
+      .map(order => ({
+        id: `#ORD${order._id.slice(-5).toUpperCase()}`,
+        customer: order.customerName || order.user?.username || "Guest",
+        amount: `₹${order.totalAmount?.toLocaleString() || "0"}`,
+        status: order.status || "Pending",
+        date: new Date(order.createdAt).toLocaleDateString("en-IN", {
+          day: "numeric", month: "short", year: "numeric"
+        }),
+      }));
+  }, [orders]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -405,7 +387,7 @@ const Dashboard = () => {
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-bold">Recent Transactions</h2>
-            <button onClick={() => navigate("/admin/order")} className="text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-black transition-all border border-blue-50">
+            <button onClick={() => navigate("/admin/orders")} className="text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-black transition-all border border-blue-50">
               VIEW ALL
             </button>
           </div>

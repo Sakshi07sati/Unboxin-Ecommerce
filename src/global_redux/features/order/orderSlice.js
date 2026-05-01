@@ -6,7 +6,8 @@ import {
   fetchUserOrders,
   adminUpdateOrderStatus,
   adminUpdateShipment,
-  adminDeleteOrder
+  adminDeleteOrder,
+  cancelUserOrder
 } from "./orderThunks";
 
 const initialState = {
@@ -114,6 +115,22 @@ const orderSlice = createSlice({
       // Admin Delete Order
       .addCase(adminDeleteOrder.fulfilled, (state, action) => {
         state.orders = state.orders.filter(order => order._id !== action.payload.orderId);
+      })
+      
+      // User Cancel Order
+      .addCase(cancelUserOrder.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(cancelUserOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        const updatedOrder = action.payload.order;
+        state.orders = state.orders.map(order => 
+          order._id === updatedOrder._id ? updatedOrder : order
+        );
+      })
+      .addCase(cancelUserOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
@@ -125,6 +142,7 @@ export const selectOrderLoading = (state) => state.order.loading;
 export const selectOrderError = (state) => state.order.error;
 export const selectOrderSuccess = (state) => state.order.success;
 export const selectAllOrders = (state) => state.order.orders;
+export const selectUserOrders = (state) => state.order.orders;
 export const selectOrdersLoading = (state) => state.order.ordersLoading;
 export const selectOrdersError = (state) => state.order.ordersError;
 

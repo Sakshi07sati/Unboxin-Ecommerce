@@ -75,7 +75,7 @@ const PaymentSection = ({
       {/* Security badge */}
       <div className="flex items-center justify-center gap-2 mt-4 text-sm text-gray-500">
         <ShieldCheck className="w-4 h-4 text-green-500" />
-        <span>Secured by Razorpay · 256-bit SSL Encryption</span>
+        <span>Pay safely with Cash on Delivery</span>
       </div>
 
       {/* Terms */}

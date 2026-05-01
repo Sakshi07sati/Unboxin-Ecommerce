@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { addProduct } from "../../../global_redux/features/product/productThunks";
+import { addProduct, fetchProducts } from "../../../global_redux/features/product/productThunks";
 import { Plus, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { fetchCategories } from "../../../global_redux/features/category/categoryThunks";
@@ -18,7 +18,7 @@ const AddProduct = () => {
   const categories = useSelector(selectCategories);
   const loadingCategories = useSelector(selectCategoryLoading);
   const categoryError = useSelector(selectCategoryError);
-  const { status, error } = useSelector((state) => state.products);
+  const { products, status, error } = useSelector((state) => state.products);
   const { subCategories, loading: subCategoryLoading } = useSelector(
     (state) => state.subCategory,
   );
@@ -39,7 +39,10 @@ const AddProduct = () => {
       dispatch(fetchCategories());
     }
     dispatch(fetchSubCategories());
-  }, [dispatch, categories]);
+    if (!products || products.length === 0) {
+      dispatch(fetchProducts({ page: 1, limit: 1000 }));
+    }
+  }, [dispatch, categories, products]);
 
   // Fixed sizes
   const fixedSizes = ["S", "M", "L", "XL", "XXL"];

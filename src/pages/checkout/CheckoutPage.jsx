@@ -19,7 +19,9 @@ import {
   selectCartItems,
   selectBuyNowItem,
   clearBuyNowItem,
+  clearCart,
 } from "../../global_redux/features/cart/cartSlice";
+import { createOrder } from "../../global_redux/features/order/orderThunks";
 import {
   applyPromoCode,
   removePromoCode,
@@ -282,19 +284,67 @@ const CheckoutPage = () => {
   const handlePayment = useCallback(async () => {
     setProcessingPayment(true);
     try {
-      // TODO: Integrate Razorpay here
-      // For now, show a success message
-      toast.success("Order placed successfully! (Payment integration pending)");
-      if (isBuyNow) {
-        dispatch(clearBuyNowItem());
+      // 1. Prepare order data
+      const orderItems = checkoutItems.map(item => ({
+        productId: item.productId || item._id || item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity || 1,
+        size: item.size || "Standard",
+        image: Array.isArray(item.image) ? item.image[0] : item.image,
+        isCustomized: item.isCustomized || false,
+        customizationDetails: item.customizationDetails || null
+      }));
+
+      const orderData = {
+        customer: userId || localStorage.getItem("userId"),
+        customerName: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        shippingAddress: {
+          address: formData.address.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          pincode: formData.pincode.trim(),
+          landmark: formData.landmark.trim()
+        },
+        items: orderItems,
+        subtotal: subtotal,
+        discount: discount,
+        totalAmount: finalAmount,
+        promoCode: appliedPromo?.code || null,
+        paymentMethod: "COD", // Changed to COD for now
+        paymentStatus: "Pending"
+      };
+
+      // 2. Call API
+      const resultAction = await dispatch(createOrder(orderData));
+
+      if (createOrder.fulfilled.match(resultAction)) {
+        toast.success("✅ Order placed successfully!");
+        
+        // 3. Cleanup
+        if (isBuyNow) {
+          dispatch(clearBuyNowItem());
+        } else {
+          dispatch(clearCart());
+        }
+        
+        // 4. Navigate to success or profile
+        setTimeout(() => {
+          navigate("/"); // Or navigate to "/profile/orders" if it exists
+        }, 1500);
+      } else {
+        const errorMsg = resultAction.payload?.message || "Failed to place order";
+        toast.error(`❌ Error: ${errorMsg}`);
       }
-      navigate("/");
     } catch (err) {
-      toast.error("Payment failed. Please try again.");
+      console.error("Checkout Error:", err);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setProcessingPayment(false);
     }
-  }, [isBuyNow, dispatch, navigate]);
+  }, [isBuyNow, dispatch, navigate, checkoutItems, formData, subtotal, discount, finalAmount, appliedPromo, userId]);
 
   // ✅ Handle payment click - validates form first
   const handlePaymentClick = () => {
@@ -425,10 +475,10 @@ const CheckoutPage = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-gray-900">
-                        Credit/Debit Card
+                        Cash on Delivery (COD)
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Pay securely with Razorpay
+                        Pay securely at your doorstep
                       </p>
                     </div>
                     <CheckCircle className="w-5 h-5 text-green-500" />

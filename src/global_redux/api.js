@@ -93,7 +93,7 @@ export const setupApiInterceptors = (store, logoutFn) => {
                                config.url?.includes("/ai/") || 
                                config.url?.includes("/promo-code") ||
                                config.url?.includes("/contect") || // Contact management routes
-                               (config.url?.includes("/orders") && config.method === "get" && !config.url?.includes("/user")) ||
+                               (config.url?.includes("/orders") && config.method !== "post" && !config.url?.includes("/user")) ||
                                (config.url === "/auth" && config.method === "get"); // GET /auth is admin-only
           
           let authToken = isAdminRoute ? adminToken : token;

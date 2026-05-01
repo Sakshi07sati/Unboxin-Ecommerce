@@ -31,6 +31,7 @@ import CartPage from "../pages/cartPage/CartPage";
 import CheckoutPage from "../pages/checkout/CheckoutPage";
 import NotFound from "../pages/notFound/NotFound";
 import Profile from "../pages/profile/Profile";
+import UserOrders from "../pages/profile/UserOrders";
 import Contacts from "../pages/contacts/Contacts";
 import About from "../pages/about/About";
 import Wishlist from "../pages/wishlist/Wishlist";
@@ -48,6 +49,7 @@ const AllRoutes = () => {
       <Route path="/shop" element={<Shop />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/my-orders" element={<UserOrders />} />
       <Route path="/products" element={<PublicProducts />} />
       <Route path="/wishlist" element={<Wishlist />} />
       <Route path="/contacts" element={<Contacts />} />
