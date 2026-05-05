@@ -455,7 +455,7 @@ const ProductDetails = () => {
                 </div>
 
                 {/* Trust Badges */}
-                <div className="mt-6 space-y-2 text-sm text-gray-400 font-medium">
+                <div className="my-4 space-y-2 text-sm text-gray-400 font-medium">
                   <p>✔ 100% Original Products</p>
                   <p>✔ Pay on delivery might be available</p>
                   <p>✔ Easy 14 days returns and exchanges</p>
