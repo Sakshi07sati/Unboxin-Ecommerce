@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { addToCart } from "../../../global_redux/features/cart/cartSlice";
-import { ShoppingCart, Search, Loader2, Filter, ArrowRight } from "lucide-react";
+import { Search, Loader2, ArrowRight } from "lucide-react";
 import DynamicSection from "../../home/components/DynamicSection";
 import toast from "react-hot-toast";
 
@@ -24,7 +24,7 @@ const ShopPage = () => {
   );
   const { sections } = useSelector((state) => state.sectionProduct);
 
-  const [selectedSizes, setSelectedSizes] = useState({});
+
 
   const queryParams = new URLSearchParams(location.search);
   const category = queryParams.get("category");
@@ -42,45 +42,7 @@ const ShopPage = () => {
     fetchData();
   }, [dispatch]);
 
-  // Size selection
-  const handleSizeSelect = (productId, size, e) => {
-    e.stopPropagation();
-    setSelectedSizes((prev) => ({ ...prev, [productId]: size }));
-  };
 
-  // Add to cart logic
-  const handleAddToCart = (product, e) => {
-    e.stopPropagation();
-
-    const selectedSizeForProduct = selectedSizes[product._id];
-
-    if (!selectedSizeForProduct) {
-      toast.error("Please select a size before adding to cart!");
-      return;
-    }
-
-    const sizeInfo = product.sizes?.find((s) => s.size === selectedSizeForProduct);
-    if (!sizeInfo || sizeInfo.stock <= 0) {
-      toast.error(`Size ${selectedSizeForProduct} is out of stock!`);
-      return;
-    }
-
-    dispatch(
-      addToCart({
-        productId: product._id,
-        name: product.name,
-        price: product.price,
-        originalPrice: product.originalPrice,
-        image: product.img,
-        size: selectedSizeForProduct,
-        memberSavings: product.memberSavings,
-        sizes: product.sizes,
-        maxStock: sizeInfo.stock,
-      })
-    );
-
-    toast.success(`${product.name} (${selectedSizeForProduct}) added to cart 🛒`);
-  };
 
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
@@ -162,37 +124,32 @@ const ShopPage = () => {
               {category
                 ? `${category} Collection`
                 : section
-                ? `${section} Section`
-                : "Shop"}
+                  ? `${section} Section`
+                  : "Shop"}
             </h1>
             <p className="text-gray-600 mt-1 text-lg">
               {category
                 ? `Explore our exclusive ${category} products`
                 : section
-                ? `Browse all ${section} designs`
-                : "Discover all our latest products"}
+                  ? `Browse all ${section} designs`
+                  : "Discover all our latest products"}
             </p>
           </div>
 
         </div>
       </div>
 
-      {/* Curated Sections - Only show when no filters are active */}
-      {!category && !section && (
-        <div className="mt-6">
-          <DynamicSection />
-          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-6">
-            <h2 className="text-3xl font-bold text-gray-900">All Products</h2>
-            <div className="h-1 w-20 bg-[#d4ff00] mt-2"></div>
-          </div>
-        </div>
-      )}
-
       {/* Products */}
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {!category && !section && (
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">All Products</h2>
+            <div className="h-1 w-20 bg-primary mt-2"></div>
+          </div>
+        )}
         {status === "loading" && hasLoaded && (
           <div className="flex justify-center mb-6">
-            <Loader2 className="w-8 h-8 text-[#d4ff00] animate-spin" />
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
           </div>
         )}
 
@@ -215,29 +172,27 @@ const ShopPage = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => {
-              const selectedSizeForProduct = selectedSizes[product._id];
-
               return (
                 <div
                   key={product._id}
                   onClick={() => handleProductClick(product._id)}
-                  className="bg-white h-[30rem] rounded-xl border border-dashed border-gray-600 overflow-hidden transition-all cursor-pointer group"
+                  className="bg-white h-[26rem] rounded-xl border border-dashed border-gray-600 overflow-hidden transition-all cursor-pointer group"
                 >
-                  <div className="relative h-[55%] p-1 overflow-hidden">
+                  <div className="relative h-[65%] p-1 overflow-hidden">
                     <img
                       src={product.img?.[0] || product.img}
                       alt={product.name}
-                      className="w-full h-full rounded-lg object-cover"
+                      className="w-full h-full rounded-lg object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
 
-                  <div className="flex flex-col justify-between h-[35%] p-4">
+                  <div className="flex flex-col justify-between h-[36%] p-3">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-900 mb-2 line-clamp-1">
+                      <h3 className="text-sm font-medium text-gray-900 mb-1 h-10 line-clamp-2">
                         {product.name}
                       </h3>
 
-                      <div className="flex items-center gap-2 mb-3">
+                      <div className="flex items-center gap-2 my-2">
                         <span className="text-xl font-bold text-gray-900">
                           ₹{product.price}
                         </span>
@@ -247,61 +202,14 @@ const ShopPage = () => {
                           </span>
                         )}
                       </div>
-
-                      {product.sizes && 
-                       product.sizes.filter(s => s.size && s.size !== "null" && s.size !== "").length > 0 && (
-                        <div className="mb-4">
-                          <p className="text-xs text-gray-500 font-medium mb-2">
-                            SELECT SIZE:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {product.sizes
-                              .filter(s => s.size && s.size !== "null" && s.size !== "")
-                              .map((sizeInfo) => {
-                              const isOutOfStock = sizeInfo.stock <= 0;
-                              const isSelected =
-                                selectedSizeForProduct === sizeInfo.size;
-
-                              return (
-                                <button
-                                  key={sizeInfo.size}
-                                  onClick={(e) =>
-                                    handleSizeSelect(
-                                      product._id,
-                                      sizeInfo.size,
-                                      e
-                                    )
-                                  }
-                                  disabled={isOutOfStock}
-                                  className={`px-3 py-1.5 border rounded-sm text-xs font-semibold transition-all ${
-                                    isSelected
-                                      ? "bg-primary border-black text-black"
-                                      : "border-black text-gray-700 hover:border-gray-400"
-                                  } ${
-                                    isOutOfStock
-                                      ? "opacity-50 cursor-not-allowed border-gray-400 text-gray-400"
-                                      : "cursor-pointer"
-                                  }`}
-                                >
-                                  {sizeInfo.size?.toUpperCase()}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </div>
 
-                    <div className="relative">
-                      <div className="absolute "></div>
+                    <div>
                       <button
-                        onClick={(e) => handleAddToCart(product, e)}
-                        className="relative bg-primary w-full hover:translate-y-[6px] text-white font-bold text-lg px-4 py-2 rounded-xl  font-mono border-black transition-transform duration-200 flex items-center justify-center gap-4"
+                        className="relative bg-primary w-full hover:translate-y-[-2px] text-white font-bold text-lg px-4 py-2 rounded-xl font-mono border-black transition-all duration-200 flex items-center justify-center gap-4 shadow-md"
                       >
-                        <ShoppingCart className="w-5 h-5" />
-                        {selectedSizeForProduct
-                          ? `Add Size ${selectedSizeForProduct}`
-                          : "Add To Cart"}
+                        <ArrowRight className="w-5 h-5" />
+                        View Product
                       </button>
                     </div>
                   </div>
@@ -311,6 +219,17 @@ const ShopPage = () => {
           </div>
         )}
       </div>
+
+      {/* Curated Sections - Only show when no filters are active */}
+      {!category && !section && (
+        <div className="mt-12 mb-20">
+          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+            <h2 className="text-3xl font-bold text-gray-900">Our Collections</h2>
+            <div className="h-1 w-20 bg-primary mt-2"></div>
+          </div>
+          <DynamicSection />
+        </div>
+      )}
     </div>
   );
 };

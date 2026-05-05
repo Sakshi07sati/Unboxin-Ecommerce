@@ -76,7 +76,6 @@ const Products = () => {
     } else {
       setFilteredProducts([]);
     }
-    setCurrentPage(1); // Reset to first page when search/filter changes
   }, [searchTerm, products, selectedCategory, selectedSubCategory]);
 
   // Pagination logic
@@ -251,7 +250,10 @@ const Products = () => {
                 type="text"
                 placeholder="Product name or ID..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
               />
             </div>
@@ -264,6 +266,7 @@ const Products = () => {
                 onChange={(e) => {
                   setSelectedCategory(e.target.value);
                   setSelectedSubCategory(""); // Clear subcategory when category changes
+                  setCurrentPage(1);
                 }}
                 className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm appearance-none cursor-pointer"
               >
@@ -282,7 +285,10 @@ const Products = () => {
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <select
                 value={selectedSubCategory}
-                onChange={(e) => setSelectedSubCategory(e.target.value)}
+                onChange={(e) => {
+                  setSelectedSubCategory(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm appearance-none cursor-pointer"
               >
                 <option value="">All SubCategories</option>
@@ -304,10 +310,10 @@ const Products = () => {
           <div className="flex gap-8">
             <div>
               <p className="text-sm text-gray-600">Total Products</p>
-              <p className="text-2xl font-bold text-gray-800">{products?.length || 0}</p>
+              <p className="text-2xl font-bold text-gray-800">{totalProducts || 0}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Showing</p>
+              <p className="text-sm text-gray-600">Showing on Page</p>
               <p className="text-2xl font-bold text-gray-800">{filteredProducts?.length || 0}</p>
             </div>
           </div>
@@ -445,7 +451,7 @@ const Products = () => {
                   <option value={100}>100</option>
                 </select>
                 <span className="text-sm text-gray-600">
-                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalProducts)} of {totalProducts} products
                 </span>
               </div>
               

@@ -146,7 +146,7 @@ const SectionCarousel = ({ sectionId, sectionName, productIds }) => {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full px-4 py-10 md:px-10">
+      <div className="mx-auto w-full px-4 py-4 md:px-10">
         <div className="flex h-56 flex-col items-center justify-center rounded-3xl border border-slate-100 bg-white text-slate-500 shadow-sm">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-primary"></div>
           <p className="mt-3 text-sm font-medium">Loading products...</p>
@@ -160,9 +160,9 @@ const SectionCarousel = ({ sectionId, sectionName, productIds }) => {
   }
 
   return (
-    <div className="mx-auto w-full px-4 py-10 md:px-7 md:py-14">
+    <div className="mx-auto w-full px-3 py-4 md:px-5 md:py-5">
       {/* Section Title */}
-      <div className="mb-7 flex flex-col items-center justify-between gap-3 md:mb-10 md:flex-row">
+      <div className="mb-5 flex flex-col items-center justify-between gap-3 md:mb-10 md:flex-row">
         <div>
            
           <h3 className="text-xl md:text-2xl font-bold  text-slate-900">
@@ -179,7 +179,7 @@ const SectionCarousel = ({ sectionId, sectionName, productIds }) => {
       </div>
 
       {/* Products Carousel */}
-      <div className="relative overflow-visible rounded-3xl border border-slate-100 bg-white px-2 py-5 shadow-sm md:px-4 md:py-6">
+      <div className="relative overflow-visible rounded-3xl border border-slate-100 bg-white px-2 py-5 shadow-sm md:px-4 md:py-2">
         <Swiper
           modules={[Navigation]}
           slidesPerView={4}

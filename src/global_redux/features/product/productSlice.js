@@ -62,10 +62,26 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = action.payload.data || [];
-        state.totalProducts = action.payload.totalProducts || 0;
-        state.totalPages = action.payload.totalPages || 1;
-        state.currentPage = action.payload.currentPage || 1;
+        const res = action.payload;
+        
+        // Handle standard object response with metadata
+        if (res && !Array.isArray(res)) {
+          state.products = res.data || res.products || [];
+          state.totalProducts = res.totalProducts || res.total || state.products.length;
+          state.totalPages = res.totalPages || res.pages || 1;
+          state.currentPage = res.currentPage || res.page || 1;
+        } 
+        // Handle direct array response
+        else if (Array.isArray(res)) {
+          state.products = res;
+          state.totalProducts = res.length;
+          state.totalPages = 1;
+          state.currentPage = 1;
+        }
+        else {
+          state.products = [];
+        }
+        
         state.hasLoaded = true;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
@@ -148,7 +164,26 @@ const productSlice = createSlice({
       })
       .addCase(fetchPublicProducts.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.products = action.payload;
+        const res = action.payload;
+        
+        // Handle standard object response with metadata
+        if (res && !Array.isArray(res)) {
+          state.products = res.data || res.products || [];
+          state.totalProducts = res.totalProducts || res.total || state.products.length;
+          state.totalPages = res.totalPages || res.pages || 1;
+          state.currentPage = res.currentPage || res.page || 1;
+        } 
+        // Handle direct array response
+        else if (Array.isArray(res)) {
+          state.products = res;
+          state.totalProducts = res.length;
+          state.totalPages = 1;
+          state.currentPage = 1;
+        }
+        else {
+          state.products = [];
+        }
+        
         state.hasLoaded = true;
         state.retryCount = 0;
         state.lastErrorTime = null;

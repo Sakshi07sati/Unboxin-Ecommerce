@@ -118,7 +118,7 @@ export const fetchPublicProducts = createAsyncThunk(
   "products/fetchPublicProducts",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await API.get("/products");
+      const res = await API.get("/products?limit=1000");
       return res.data.data || res.data.products || res.data;
     } catch (err) {
       return rejectWithValue(
@@ -133,7 +133,7 @@ export const fetchProductsByCategory = createAsyncThunk(
   async (category, { rejectWithValue }) => {
     try {
       const res = await API.get(`/product?category=${category}`);
-      return res.data.products;
+      return res.data.data || res.data.products || res.data;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to fetch products"
@@ -161,7 +161,7 @@ export const fetchProductsBySection = createAsyncThunk(
   async (section, { rejectWithValue }) => {
     try {
       const res = await API.get(`/section/${section}`);
-      return res.data.data || [];
+      return res.data.data || res.data.products || res.data;
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to fetch products by section"

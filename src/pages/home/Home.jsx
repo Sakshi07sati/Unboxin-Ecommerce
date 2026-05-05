@@ -12,8 +12,8 @@ export default function Home() {
       <Navbar />
       <HeroPage />
       <FeatureProduct />
-      <DealsSection />
-      <StyleSection />
+      {/* <DealsSection /> */}
+      {/* <StyleSection /> */}
        <DynamicSection/>
       <Footer />
     </div>

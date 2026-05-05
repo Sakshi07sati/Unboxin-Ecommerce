@@ -16,7 +16,7 @@ export default function StyleSection() {
   }, []);
 
   return (
-    <div className="bg-white py-8 px-4">
+    <div className="bg-white py-8 px-4 border border-red-500">
         
       <h3 className="text-3xl font-bold font-playfair text-textprimary mb-10 text-center">
         Style in Motion 

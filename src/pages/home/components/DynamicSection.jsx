@@ -60,7 +60,7 @@ const DynamicSection = () => {
   }
 
   return (
-    <section className="w-full bg-gradient-to-b from-white to-slate-50/60 py-6 md:py-10">
+    <section className="w-full  bg-gradient-to-b from-white to-slate-50/60 py-2 md:py-5">
       {activeSections.map((section) => (
         <SectionCarousel
           key={section._id}
