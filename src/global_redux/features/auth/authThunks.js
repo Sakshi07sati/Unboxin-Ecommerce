@@ -112,24 +112,42 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-export const forgotPassword = async (data) => {
-  try {
-    const res = await API.post("/userauth/forgot-password", data);
-    return res;
-  } catch (error) {
-    console.log("API ERROR:", error); // IMPORTANT
-    throw error; // don't forget this
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await API.post("/userauth/forgot-password", data);
+      console.log(res.data.otp);
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to send OTP");
+    }
   }
-};
-export const resetPassword = async (data) => {
-  try {
-    const res = await API.post("/userauth/reset-password", data);
-    return res;
-  } catch (error) {
-    console.log("API ERROR:", error); // IMPORTANT
-    throw error; // don't forget this
+);
+
+export const verifyForgotPasswordOtp = createAsyncThunk(
+  "auth/verifyForgotPasswordOtp",
+  async ({ phone, otp }, { rejectWithValue }) => {
+    try {
+      const res = await API.post("/userauth/verify-forgot-password-otp", { phone, otp });
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Invalid or expired OTP");
+    }
   }
-};
+);
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await API.post("/userauth/reset-password", data);
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to reset password");
+    }
+  }
+);
 
 export const fetchUserProfile = createAsyncThunk(
   "auth/fetchUserProfile",

@@ -3,6 +3,9 @@ import { setStep, toggleModal } from "../../global_redux/features/auth/authSlice
 import LoginModal from "../User/LoginModal";
 import SignupForm from "../User/SignupForm";
 import OtpForm from "../User/OtpForm";
+import ForgotPassword from "../User/ForgotPassword";
+import ForgotOtpVerify from "../User/ForgotOtpVerify";
+import ResetPassword from "../User/ResetPassword";
 
 const AuthModal = () => {
   const { step, isModalOpen } = useSelector((state) => state.auth);
@@ -36,6 +39,9 @@ const AuthModal = () => {
           {step === "login" && <LoginModal onClose={handleClose} />}
           {step === "signup" && <SignupForm />}
           {step === "otp" && <OtpForm />}
+          {step === "forgot-password" && <ForgotPassword />}
+          {step === "forgot-otp" && <ForgotOtpVerify />}
+          {step === "reset-password" && <ResetPassword />}
         </div>
       </div>
     </div>

@@ -6,7 +6,10 @@ import {
   verifyOtp,
   loginUser,
   fetchUserProfile,
-  updateUserProfile
+  updateUserProfile,
+  forgotPassword,
+  verifyForgotPasswordOtp,
+  resetPassword
 } from "./authThunks";
 
 // LocalStorage
@@ -22,7 +25,7 @@ const initialState = {
   userId: storedUserId || null,
 
   // (for auth flow)
-  step: "login",          // login | signup | otp
+  step: "login",          // login | signup | otp | forgot-password | forgot-otp | reset-password
   otpData: null,
 
   status: "idle",
@@ -243,6 +246,47 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.status = "failed";
+        state.error = action.payload;
+      })
+      
+      // FORGOT PASSWORD
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(forgotPassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.otpData = action.meta.arg; // Save phone for OTP step
+        state.step = "forgot-otp";
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // VERIFY FORGOT PASSWORD OTP
+      .addCase(verifyForgotPasswordOtp.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(verifyForgotPasswordOtp.fulfilled, (state, action) => {
+        state.loading = false;
+        state.otpData = { ...state.otpData, otp: action.meta.arg.otp };
+        state.step = "reset-password";
+      })
+      .addCase(verifyForgotPasswordOtp.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // RESET PASSWORD
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.step = "login";
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
       });
   },

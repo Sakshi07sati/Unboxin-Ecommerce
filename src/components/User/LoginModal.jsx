@@ -345,7 +345,12 @@ const LoginModal = ({ onClose }) => {
           <div className="space-y-1.5">
             <div className="flex justify-between items-center px-1">
               <label className="text-xs font-bold text-slate-400  ">Password</label>
-              <span className="text-[10px] font-bold text-pink-600 cursor-pointer hover:underline uppercase  ">Forgot?</span>
+              <span 
+                onClick={() => dispatch(setStep("forgot-password"))}
+                className="text-[10px] font-bold text-pink-600 cursor-pointer hover:underline uppercase"
+              >
+                Forgot?
+              </span>
             </div>
             <input
               name="password"
